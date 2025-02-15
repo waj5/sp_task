@@ -7,15 +7,17 @@
 
 <script>
 export default {
-  name: 'Home',
+  name: "Home",
   methods: {
     logout() {
-      // 清除登录状态并重定向到登录页面
-      localStorage.removeItem('token') // 假设使用 token 存储登录状态
-      this.$router.push('/login')
+      // 清除登录状态
+      localStorage.removeItem('token'); // 假设 token 是登录状态的标识
+
+      // 跳转到登录页面
+      this.$router.push({ name: 'Login' }); // 使用命名路由跳转
     },
   },
-}
+};
 </script>
 
 <style>

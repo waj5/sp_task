@@ -24,4 +24,16 @@ const router = createRouter({
   routes,
 })
 
-export default router
+// 添加全局导航守卫
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token'); // 获取 token
+
+  if (to.name !== 'Login' && !token) {
+    // 如果未登录且访问的不是登录页，则重定向到登录页
+    next({ name: 'Login' });
+  } else {
+    next(); // 否则放行
+  }
+});
+
+export default router;

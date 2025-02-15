@@ -32,9 +32,8 @@
 </template>
 
 <script>
-import { login } from "../api/auth"; // 引入登录 API 方法
+import { login } from "../api/auth";
 import { ElMessage } from "element-plus";
-
 export default {
   name: "Login",
   data() {
@@ -55,27 +54,28 @@ export default {
   },
   methods: {
     async onSubmit() {
-      // 表单验证
       this.$refs.loginForm.validate(async (valid) => {
         if (valid) {
           try {
-            const response = await login(
-              this.form.username,
-              this.form.password
-            );
-            ElMessage.success(response.message);
-            // 登录成功后的逻辑，比如跳转到首页
-            console.log("登录成功", response);
+            const response = await login(this.form.username, this.form.password);
+
+            // 根据后端返回的数据结构，存储 token
+            localStorage.setItem('token', response.token); // 确保 response.token 存在
+
+            // 跳转到首页
+            this.$router.push({ name: 'Home' }); // 使用命名路由跳转
+
+            ElMessage.success('登录成功');
           } catch (error) {
-            ElMessage.error(error.response?.data?.detail || "登录失败");
+            console.error(error.response); // 打印错误信息，便于调试
+            const errorMessage = error.response?.data?.message || error.response?.data?.detail || "登录失败";
+            ElMessage.error(errorMessage); // 显示后端返回的错误信息
           }
-        } else {
-          console.log("表单验证失败");
         }
       });
     },
     onReset() {
-      this.$refs.loginForm.resetFields();
+      this.$refs.loginForm.resetFields(); // 重置表单
     },
   },
 };
