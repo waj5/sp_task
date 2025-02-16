@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../components/Login.vue'
 import Home from '../views/Home.vue'
+import MyTasks from '../views/MyTasks.vue'
 
 const routes = [
   {
@@ -17,6 +18,11 @@ const routes = [
     name: 'Home',
     component: Home,
   },
+  {
+  path: '/tasks',
+  name: 'MyTasks', // 命名路由
+  component: MyTasks,
+ },
 ]
 
 const router = createRouter({

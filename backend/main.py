@@ -18,6 +18,7 @@ app.add_middleware(
 # 注册路由
 app.include_router(auth.router)
 
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to FastAPI backend!"}

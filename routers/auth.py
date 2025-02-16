@@ -23,3 +23,11 @@ def login(request: LoginRequest):
     if not user or user["password"] != request.password:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
     return {"message": "登录成功", "username": request.username}
+
+@router.get("/tasks")
+async def get_tasks():
+    return [
+        {"id": 1, "title": "完成Vue项目", "status": "进行中"},
+        {"id": 2, "title": "学习FastAPI", "status": "已完成"},
+        {"id": 3, "title": "更新文档", "status": "未开始"},
+    ]

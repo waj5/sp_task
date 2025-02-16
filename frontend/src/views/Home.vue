@@ -1,6 +1,7 @@
 <template>
   <div class="home">
     <h1>欢迎来到首页</h1>
+    <el-button type="primary" @click="goToTasks">我的任务</el-button>
     <el-button type="primary" @click="logout">退出登录</el-button>
   </div>
 </template>
@@ -9,6 +10,9 @@
 export default {
   name: "Home",
   methods: {
+    goToTasks() {
+      this.$router.push({ name: "MyTasks" }); // 跳转到我的任务页面
+    },
     logout() {
       // 清除登录状态
       localStorage.removeItem('token'); // 假设 token 是登录状态的标识
