@@ -11,6 +11,6 @@ export const login = async (username, password) => {
 }
 
 export const fetchTasks = async () => {
-  const response = await apiClient.get("/auth/tasks");
+  const response = await apiClient.get("/tasks");
   return response.data; // 返回任务数据
 };
