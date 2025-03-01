@@ -5,7 +5,7 @@ from tortoise import fields, Model
 class Master(Model):
     id = fields.UUIDField(pk=True, default=uuid.uuid4)
     name = fields.CharField(max_length=100)
-    password = fields.CharField(max_length=128,default='')  # 增加长度以适应 bcrypt 哈希值
+    password = fields.CharField(max_length=128)  # 增加长度以适应 bcrypt 哈希值
     sex = fields.CharField(max_length=10)
     age = fields.IntField()
     email = fields.CharField(max_length=100)
@@ -25,7 +25,7 @@ class Master(Model):
 class Administered(Model):
     id = fields.UUIDField(pk=True, default=uuid.uuid4)
     name = fields.CharField(max_length=100)
-    password = fields.CharField(max_length=128,default='')  # 增加长度以适应 bcrypt 哈希值
+    password = fields.CharField(max_length=128)  # 增加长度以适应 bcrypt 哈希值
     sex = fields.CharField(max_length=10)
     age = fields.IntField()
     email = fields.CharField(max_length=100)

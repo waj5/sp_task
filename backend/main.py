@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth
+from routers import auth, task
 import uvicorn
 
 app = FastAPI()
@@ -17,7 +17,7 @@ app.add_middleware(
 
 # 注册路由
 app.include_router(auth.router)
-
+app.include_router(task.router)
 
 @app.get("/")
 def read_root():
