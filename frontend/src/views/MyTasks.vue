@@ -24,8 +24,8 @@ export default {
   methods: {
     async loadTasks() {
       try {
-        const data = await fetchTasks(); // 调用接口获取任务数据
-        this.tasks = data; // 将数据赋值给 tasks
+        this.tasks  = await fetchTasks(); // 调用接口获取任务数据
+
       } catch (error) {
         console.error(error);
         ElMessage.error("加载任务失败，请稍后重试");

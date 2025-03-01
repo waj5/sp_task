@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from backend.database import login_user,init
 import jwt
 from datetime import datetime, timedelta
-from backend.config import SECRET_KEY
+from backend.config import SECRET_KEY,ALGORITHM
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
@@ -16,7 +16,6 @@ class LoginRequest(BaseModel):
 @router.post("/login")
 async def login(request: LoginRequest):
     await init()  # 初始化 Tortoise ORM
-    print("Received login request:", request.dict())
 
     # 从请求中获取用户名和密码
     username = request.username
@@ -27,11 +26,10 @@ async def login(request: LoginRequest):
 
     # 检查用户是否存在以及密码是否匹配
     if user:
-        print(user.id)
         token = jwt.encode({
             'user_id': str(user.id),
             'exp': datetime.utcnow() + timedelta(hours=1)  # Token 有效期 1 小时
-        }, SECRET_KEY)
+        }, SECRET_KEY, algorithm=ALGORITHM)
         return {'token': token}
     else:
         return '登录失败'
