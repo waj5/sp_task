@@ -13,8 +13,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        print("Token:", token)
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print("Payload:", payload)
         user_id: str = payload.get("user_id")
+        print("User ID:", user_id)
         if user_id is None:
             raise credentials_exception
     except JWTError as e:
