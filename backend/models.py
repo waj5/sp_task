@@ -6,13 +6,15 @@ class Master(Model):
     id = fields.UUIDField(pk=True, default=uuid.uuid4)
     name = fields.CharField(max_length=100)
     password = fields.CharField(max_length=128)  # 增加长度以适应 bcrypt 哈希值
-    sex = fields.CharField(max_length=10)
-    age = fields.IntField()
+    sex = fields.CharField(max_length=10, null=True, default="未知")  # 允许为空，设置默认值为“未知”
+    age = fields.IntField(null=True, default=0)  # 允许为空，设置默认值为0
     email = fields.CharField(max_length=100)
-    administered = fields.ManyToManyField("models.Administered", related_name="administered")  # 如果 Master 和 Administered 定义在同一文件，可改为直接使用类名
+    is_admin = fields.BooleanField(default=True)  # 新增字段判断是否是管理者
+    administered = fields.ManyToManyField("models.Administered", related_name="masters")  # 修改 related_name
 
     class Meta:
         table = 'master'
+        database = "default"
 
     def set_password(self, raw_password: str) -> None:
         """使用 bcrypt 哈希密码"""
@@ -26,13 +28,15 @@ class Administered(Model):
     id = fields.UUIDField(pk=True, default=uuid.uuid4)
     name = fields.CharField(max_length=100)
     password = fields.CharField(max_length=128)  # 增加长度以适应 bcrypt 哈希值
-    sex = fields.CharField(max_length=10)
-    age = fields.IntField()
+    sex = fields.CharField(max_length=10, null=True, default="未知")  # 允许为空，设置默认值为“未知”
+    age = fields.IntField(null=True, default=0)  # 允许为空，设置默认值为0
     email = fields.CharField(max_length=100)
-    master = fields.ManyToManyField("models.Master", related_name="master")  # 直接使用类名
+    is_admin = fields.BooleanField(default=False)  # 新增字段判断是否是管理者
+    master = fields.ForeignKeyField("models.Master", related_name="administereds", null=True)  # 新增外键关联到 Master
 
     class Meta:
         table = 'administered'
+        database = "default"
 
     def set_password(self, raw_password: str) -> None:
         """使用 bcrypt 哈希密码"""
@@ -47,9 +51,11 @@ class Task(Model):
     title = fields.CharField(max_length=100)
     create_time = fields.DatetimeField(auto_now_add=True)
     complete_time = fields.DatetimeField(null=True, blank=True)  # 作为可选字段处理
-    create_user = fields.ForeignKeyField("models.Master", related_name="task")  # 直接使用类名
-    designee = fields.ForeignKeyField("models.Administered", related_name="designee_task")  # 直接使用类名
     content = fields.TextField()
+    status = fields.CharField(max_length=50, default="未完成")  # 设置默认值为“未完成”
+    create_user = fields.ForeignKeyField("models.Master", related_name="tasks")  # 直接使用类名
+    designee = fields.ForeignKeyField("models.Administered", related_name="designee_tasks")  # 直接使用类名
 
     class Meta:
         table = 'task'
+        database = "default"

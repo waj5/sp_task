@@ -1,21 +1,32 @@
+# main.py 最终版本
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, task
+from backend.tortoise_config import TORTOISE_ORM
+from tortoise import Tortoise
 import uvicorn
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 应用启动时初始化
+    await Tortoise.init(config=TORTOISE_ORM)
+    await Tortoise.generate_schemas(safe=True)
+    yield
+    # 应用关闭时清理
+    await Tortoise.close_connections()
 
-# 配置 CORS
+app = FastAPI(lifespan=lifespan)
+
+# CORS配置保持不变
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 允许所有来源（生产环境建议限制为特定域名）
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # 允许所有 HTTP 方法
-    allow_headers=["*"],  # 允许所有请求头
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-
-# 注册路由
 app.include_router(auth.router)
 app.include_router(task.router)
 
