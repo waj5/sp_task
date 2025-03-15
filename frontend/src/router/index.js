@@ -6,23 +6,29 @@ import MyTasks from '../views/MyTasks.vue'
 const routes = [
   {
     path: '/',
-    redirect: '/login', // 默认重定向到登录页
+    redirect: { name: 'Home' }, // 修改点4：默认跳转到任务页
   },
   {
     path: '/login',
     name: 'Login',
     component: Login,
+    meta: { requiresAuth: false } // 添加元信息
   },
   {
     path: '/home',
     name: 'Home',
     component: Home,
+    meta: { requiresAuth: true }
   },
   {
-  path: '/tasks',
-  name: 'MyTasks', // 命名路由
-  component: MyTasks,
- },
+    path: '/tasks',
+    name: 'MyTasks',
+    component: MyTasks,
+    meta: {
+      requiresAuth: true,
+      title: '我的任务列表'
+    }
+  }
 ]
 
 const router = createRouter({
@@ -30,16 +36,35 @@ const router = createRouter({
   routes,
 })
 
-// 添加全局导航守卫
+// 改进后的导航守卫
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token'); // 获取 token
+     const isAuthenticated = localStorage.getItem('jwtToken');
 
-  if (to.name !== 'Login' && !token) {
-    // 如果未登录且访问的不是登录页，则重定向到登录页
-    next({ name: 'Login' });
-  } else {
-    next(); // 否则放行
-  }
-});
+     // 白名单机制
+     const authWhitelist = ['Login'];
 
-export default router;
+     // 退出登录后访问根路径
+     if (to.path === '/' && !isAuthenticated) {
+       next({ name: 'Login' });
+       return;
+     }
+
+     // 需要登录且未认证
+     if (to.meta.requiresAuth && !isAuthenticated) {
+       next({
+         name: 'Login',
+         query: { redirect: to.fullPath }
+       });
+       return;
+     }
+
+     // 已登录时访问登录页
+     if (to.name === 'Login' && isAuthenticated) {
+       next({ name: 'Home' });
+       return;
+     }
+
+     next();
+   });
+
+export default router

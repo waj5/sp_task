@@ -1,4 +1,3 @@
-# main.py 最终版本
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,9 +17,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# CORS配置保持不变
+# 正确配置 CORS
 app.add_middleware(
-    CORSMiddleware,
+    CORSMiddleware,  # 直接传递类
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],

@@ -14,12 +14,9 @@ export default {
       this.$router.push({ name: "MyTasks" }); // 跳转到我的任务页面
     },
     logout() {
-      // 清除登录状态
-      localStorage.removeItem('token'); // 假设 token 是登录状态的标识
-
-      // 跳转到登录页面
-      this.$router.push({ name: 'Login' }); // 使用命名路由跳转
-    },
+  localStorage.removeItem('jwtToken'); // 修改为 jwtToken
+  this.$router.push({ name: 'Login' });
+}
   },
 };
 </script>
