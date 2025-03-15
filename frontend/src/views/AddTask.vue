@@ -30,12 +30,11 @@
         />
       </el-form-item>
 
-      <el-form-item label="负责人ID:" prop="designeeId">
-        <el-input-number
-          v-model="formData.designeeId"
-          :min="1"
-          controls-position="right"
-          placeholder="请输入负责人ID"
+      <el-form-item label="负责人姓名:" prop="designeeName">
+        <el-input
+          v-model.trim="formData.designeeName"
+          placeholder="请输入负责人姓名"
+          clearable
         />
       </el-form-item>
     </el-form>
@@ -71,7 +70,7 @@ const isSubmitting = ref(false);
 const formData = reactive({
   title: '',
   content: '',
-  designeeId: null
+  designeeName: '' // 修改为字符串类型
 });
 
 // 验证规则
@@ -84,9 +83,8 @@ const formRules = {
     { required: true, message: '请输入任务内容', trigger: 'blur' },
     { max: 500, message: '内容长度不能超过500个字符', trigger: 'blur' }
   ],
-  designeeId: [
-    { required: true, message: '请选择负责人', trigger: 'blur' },
-    { type: 'number', message: '必须为有效数字', trigger: 'blur' }
+  designeeName: [
+    { required: true, message: '请输入负责人姓名', trigger: 'blur' }
   ]
 };
 
@@ -102,12 +100,13 @@ const handleSubmit = async () => {
 
     // 表单验证
     await taskFormRef.value.validate();
+    console.log('表单验证通过，准备提交数据');
 
     // 提交数据
     await addTask({
       title: formData.title,
       content: formData.content,
-      designee_id: formData.designeeId
+      designee_name: formData.designeeName // 修改字段名
     });
 
     ElMessage.success('任务创建成功');
@@ -134,7 +133,7 @@ defineExpose({
 </script>
 
 <style scoped>
-.el-input-number {
+.el-input {
   width: 100%;
 }
 
