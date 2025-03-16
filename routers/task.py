@@ -35,7 +35,7 @@ async def create_task(
     response_data = {
         "tasks": [
             {
-                "create_user_id": task.create_user_id,
+                "creator_id": task.creator_id,  # 修正字段名称
                 "id": task.id,
                 "designee_id": task.designee_id,
                 "content": task.content,

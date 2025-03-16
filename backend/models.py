@@ -2,60 +2,97 @@ import bcrypt
 import uuid
 from tortoise import fields, Model
 
-class Master(Model):
-    id = fields.UUIDField(pk=True, default=uuid.uuid4)
+class User(Model):
+    id = fields.UUIDField(pk=True, default=uuid.uuid4, db_type="char(36)")  # 新增db_type
     name = fields.CharField(max_length=100)
-    password = fields.CharField(max_length=128)  # 增加长度以适应 bcrypt 哈希值
-    sex = fields.CharField(max_length=10, null=True, default="未知")  # 允许为空，设置默认值为“未知”
-    age = fields.IntField(null=True, default=0)  # 允许为空，设置默认值为0
+    password = fields.CharField(max_length=128)
     email = fields.CharField(max_length=100)
-    is_admin = fields.BooleanField(default=True)  # 新增字段判断是否是管理者
-    administered = fields.ManyToManyField("models.Administered", related_name="masters")  # 修改 related_name
+    is_admin = fields.BooleanField(default=False)
+    role = fields.CharField(max_length=20, default='administered')  # 新增角色字段
 
-    class Meta:
-        table = 'master'
-        database = "default"
-
-    def set_password(self, raw_password: str) -> None:
-        """使用 bcrypt 哈希密码"""
-        self.password = bcrypt.hashpw(raw_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    # 公共密码验证方法
+    def set_password(self, raw_password: str):
+        if len(raw_password) < 8:
+            raise ValueError("密码至少需要8个字符")
+        self.password = bcrypt.hashpw(raw_password.encode(), bcrypt.gensalt()).decode()
 
     def check_password(self, raw_password: str) -> bool:
-        """验证密码"""
-        return bcrypt.checkpw(raw_password.encode('utf-8'), self.password.encode('utf-8'))
+        return bcrypt.checkpw(raw_password.encode(), self.password.encode())
+
+    class Meta:
+        table = 'users'
+        database = "default"
+
+class Master(Model):
+    id = fields.UUIDField(pk=True, default=uuid.uuid4, db_type="char(36)")  # 添加显式主键
+    user = fields.OneToOneField(
+        'models.User',
+        related_name='master',
+        db_constraint=False,
+        db_type="char(36)"
+    )
+    administered = fields.ManyToManyField(
+        "models.Administered",
+        related_name="masters",
+        through="masters_administered",
+        forward_key={"db_column": "master_id", "db_type": "char(36)"},
+        backward_key={"db_column": "administered_id", "db_type": "char(36)"}
+    )
+    class Meta:
+        table ='master'
+        database = "default"
 
 class Administered(Model):
-    id = fields.UUIDField(pk=True, default=uuid.uuid4)
-    name = fields.CharField(max_length=100)
-    password = fields.CharField(max_length=128)  # 增加长度以适应 bcrypt 哈希值
-    sex = fields.CharField(max_length=10, null=True, default="未知")  # 允许为空，设置默认值为“未知”
-    age = fields.IntField(null=True, default=0)  # 允许为空，设置默认值为0
-    email = fields.CharField(max_length=100)
-    is_admin = fields.BooleanField(default=False)  # 新增字段判断是否是管理者
-    master = fields.ForeignKeyField("models.Master", related_name="administereds", null=True)  # 新增外键关联到 Master
-
+    id = fields.UUIDField(pk=True, default=uuid.uuid4, db_type="char(36)")  # 显式定义主键
+    user = fields.OneToOneField('models.User', related_name='administered', db_type="char(36)")
+    master = fields.ForeignKeyField(
+        'models.Master',
+        related_name='administereds',
+        null=True,
+        db_type="char(36)"
+    )
     class Meta:
         table = 'administered'
         database = "default"
 
-    def set_password(self, raw_password: str) -> None:
-        """使用 bcrypt 哈希密码"""
-        self.password = bcrypt.hashpw(raw_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-    def check_password(self, raw_password: str) -> bool:
-        """验证密码"""
-        return bcrypt.checkpw(raw_password.encode('utf-8'), self.password.encode('utf-8'))
+class MastersAdministered(Model):
+    master = fields.ForeignKeyField(
+        "models.Master",
+        db_column="master_id",
+        db_type="char(36)"  # 新增
+    )
+    administered = fields.ForeignKeyField(
+        "models.Administered",
+        db_column="administered_id",
+        db_type="char(36)"  # 新增
+    )
+    class Meta:
+        table = "masters_administered"
+        indexes = [
+            ("master_id", "administered_id")  # 明确指定联合索引字段
+        ]
 
 class Task(Model):
-    id = fields.UUIDField(pk=True, default=uuid.uuid4)
+    id = fields.UUIDField(pk=True, default=uuid.uuid4, db_type="char(36)")
     title = fields.CharField(max_length=100)
-    create_time = fields.DatetimeField(auto_now_add=True)
-    complete_time = fields.DatetimeField(null=True, blank=True)  # 作为可选字段处理
     content = fields.TextField()
-    status = fields.CharField(max_length=50, default="未完成")  # 设置默认值为“未完成”
-    create_user = fields.ForeignKeyField("models.Master", related_name="tasks")  # 直接使用类名
-    designee = fields.ForeignKeyField("models.Administered", related_name="designee_tasks")  # 直接使用类名
+    status = fields.CharField(max_length=20, default="未完成")
+    create_time = fields.DatetimeField(auto_now_add=True)
+    complete_time = fields.DatetimeField(null=True)
+
+    # 统一关联用户表
+    creator = fields.ForeignKeyField(
+        "models.User",
+        related_name="created_tasks"
+    )
+    designee = fields.ForeignKeyField(
+        "models.User",  # 直接关联到User表
+        related_name="assigned_tasks"
+    )
 
     class Meta:
         table = 'task'
         database = "default"
+
+
+
