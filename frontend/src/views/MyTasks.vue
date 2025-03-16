@@ -33,8 +33,8 @@
               <p><strong>任务内容:</strong> {{ task.content }}</p>
               <p><strong>创建时间:</strong> {{ task.create_time }}</p>
               <p><strong>完成时间:</strong> {{ task.complete_time || "未完成" }}</p>
-              <p><strong>负责人ID:</strong> {{ task.designee_id }}</p>
-              <p><strong>创建人ID:</strong> {{ task.create_user_id }}</p>
+              <p><strong>负责人:</strong> {{ task.designee_name }}</p>
+              <p><strong>创建人:</strong> {{ task.creator_name }}</p>
             </div>
           </el-card>
         </el-collapse-item>

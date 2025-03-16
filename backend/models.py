@@ -90,6 +90,9 @@ class Task(Model):
         related_name="assigned_tasks"
     )
 
+    async def get_details(self):
+        await self.fetch_related('creator', 'designee')
+        return self
     class Meta:
         table = 'task'
         database = "default"

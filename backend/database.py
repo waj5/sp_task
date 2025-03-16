@@ -127,5 +127,5 @@ async def query_tasks_by_user_or_designee(user_id: str, designee_id: str):
     """查询与用户或指派者相关的任务"""
     tasks = await Task.filter(
         Q(creator_id=user_id) | Q(designee_id=designee_id)
-    ).all()
+    ).prefetch_related("creator", "designee")
     return tasks

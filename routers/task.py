@@ -20,9 +20,22 @@ class TaskUpdate(BaseModel):
 
 @router.get("/tasks")
 async def get_tasks(current_user_id: str = Depends(get_current_user)):
-    # 假设 designee_id 也是当前用户
     tasks = await query_tasks_by_user_or_designee(current_user_id, current_user_id)
-    return {"tasks": tasks}
+    return {
+        "tasks": [
+            {
+                "id": task.id,
+                "title": task.title,
+                "content": task.content,
+                "status": task.status,
+                "create_time": task.create_time.isoformat(),
+                "complete_time": task.complete_time.isoformat() if task.complete_time else None,
+                "creator_name": (await task.creator).name,  # 获取创建人姓名
+                "designee_name": (await task.designee).name  # 获取负责人姓名
+            }
+            for task in tasks
+        ]
+    }
 
 @router.post("/tasks", status_code=status.HTTP_201_CREATED)
 async def create_task(
@@ -30,22 +43,19 @@ async def create_task(
     current_user_id: str = Depends(get_current_user)  # 当前用户 ID
 ):
     # 创建任务
-    task = await get_designees_by_task(task_data, current_user_id)
+    tasks = await get_designees_by_task(task_data, current_user_id)
     # 返回成功响应
-    response_data = {
-        "tasks": [
-            {
-                "creator_id": task.creator_id,  # 修正字段名称
-                "id": task.id,
-                "designee_id": task.designee_id,
-                "content": task.content,
-                "title": task.title,
-                "create_time": task.create_time.isoformat(),
-                "complete_time": task.complete_time.isoformat() if task.complete_time else None
-            }
-        ]
+    return {
+        "tasks": [{
+            "id": task.id,
+            "title": task.title,
+            "content": task.content,
+            "creator_name": task.creator.name,  # 确保关联查询了creator
+            "designee_name": task.designee.name,  # 确保关联查询了designee
+            "create_time": task.create_time.isoformat(),
+            "complete_time": task.complete_time.isoformat() if task.complete_time else None
+        } for task in tasks]
     }
-    return response_data
 
 @router.patch("/tasks/{task_id}", status_code=200)
 async def update_task_by_id(
