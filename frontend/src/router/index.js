@@ -6,7 +6,12 @@ import MyTasks from '../views/MyTasks.vue'
 const routes = [
   {
     path: '/',
-    redirect: { name: 'Home' }, // 修改点4：默认跳转到任务页
+    redirect: (to) => {
+      // 根据登录状态动态跳转
+      return localStorage.getItem('jwtToken')
+        ? { name: 'Home' }
+        : { name: 'Login' }
+    }
   },
   {
     path: '/login',
@@ -41,7 +46,7 @@ router.beforeEach((to, from, next) => {
      const isAuthenticated = localStorage.getItem('jwtToken');
 
      // 白名单机制
-     const authWhitelist = ['Login'];
+     const authWhitelist = ['Login','Home'];
 
      // 退出登录后访问根路径
      if (to.path === '/' && !isAuthenticated) {

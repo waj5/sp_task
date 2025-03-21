@@ -32,10 +32,22 @@
               <p><strong>任务ID:</strong> {{ task.id }}</p>
               <p><strong>任务内容:</strong> {{ task.content }}</p>
               <p><strong>创建时间:</strong> {{ task.create_time }}</p>
-              <p><strong>完成时间:</strong> {{ task.complete_time || "未完成" }}</p>
+              <p v-if="task.status === '已完成'">
+                <strong>完成时间:</strong> {{ task.complete_time }}
+              </p>
+              <p v-else>
+                <strong>状态:</strong> {{ task.status }}
+              </p>
               <p><strong>负责人:</strong> {{ task.designee_name }}</p>
               <p><strong>创建人:</strong> {{ task.creator_name }}</p>
             </div>
+             <el-button
+              v-if="task.status === '未完成'"
+              type="success"
+              @click="markTaskComplete(task)"
+              class="complete-button">
+              标记完成
+            </el-button>
           </el-card>
         </el-collapse-item>
         <div v-if="tasks.length === 0" class="no-tasks">
@@ -54,7 +66,7 @@
 </template>
 
 <script>
-import { fetchTasks } from "../api/auth";
+import { fetchTasks,updateTaskStatus } from "../api/auth";
 import { ElMessage } from "element-plus";
 import AddTask from './AddTask.vue' // 导入组件
 
@@ -82,22 +94,20 @@ export default {
       this.loadTasks() // 刷新任务列表
     },
 
-    // 原有功能保持不变
     async markTaskComplete(task) {
       try {
-        // 你的原有完成逻辑
-        await completeTask(task.id)
-        ElMessage.success("任务标记完成")
+        await updateTaskStatus(task.id)
+        ElMessage.success("任务已标记完成")
         await this.loadTasks()
       } catch (error) {
-        ElMessage.error("操作失败")
+        ElMessage.error(error.message || "操作失败")
+        console.error("标记完成错误:", error)
       }
     },
 
     async loadTasks() {
       try {
         const response = await fetchTasks();
-        console.log('后端返回的任务数据:', response); // 打印后端返回的数据
         this.tasks = response || []; // 直接使用返回的数组
       } catch (error) {
         ElMessage.error("加载任务失败");

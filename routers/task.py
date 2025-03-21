@@ -16,7 +16,10 @@ class TaskCreate(BaseModel):
 class TaskUpdate(BaseModel):
     title: Optional[str] = None  # 任务标题（可选）
     content: Optional[str] = None  # 任务内容（可选）
+    status: Optional[str] = None
     complete_time: Optional[datetime] = None  # 完成时间（可选）
+
+
 
 @router.get("/tasks")
 async def get_tasks(current_user_id: str = Depends(get_current_user)):
@@ -29,7 +32,7 @@ async def get_tasks(current_user_id: str = Depends(get_current_user)):
                 "content": task.content,
                 "status": task.status,
                 "create_time": task.create_time.isoformat(),
-                "complete_time": task.complete_time.isoformat() if task.complete_time else None,
+                "complete_time": task.update_time.isoformat() if task.update_time else None,
                 "creator_name": (await task.creator).name,  # 获取创建人姓名
                 "designee_name": (await task.designee).name  # 获取负责人姓名
             }
@@ -64,27 +67,19 @@ async def update_task_by_id(
     current_user_id: str = Depends(get_current_user)
 ):
     try:
-        # 调用更新函数，传递当前用户ID进行权限验证
-        updated_task = await update_task(task_id, task_update)
-        # 构造响应数据
+        updated_task = await update_task(task_id, task_update, current_user_id)
         response_data = {
             "id": updated_task.id,
             "title": updated_task.title,
-            "content": updated_task.content,
-            "designee_id": updated_task.designee_id,
-            "create_time": updated_task.create_time.isoformat(),
-            "complete_time": updated_task.complete_time.isoformat() if updated_task.complete_time else None
+            "status": updated_task.status,  # 新增
+            "creator_name": (await updated_task.creator).name,  # 新增
+            "designee_name": (await updated_task.designee).name  # 新增
         }
         return response_data
     except HTTPException as e:
-        # 捕获并重新抛出已知的HTTP异常
         raise e
     except Exception as e:
-        # 处理其他意外错误
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"更新任务时发生错误：{str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/tasks/{task_id}", status_code=204)
 async def delete_task_by_id(

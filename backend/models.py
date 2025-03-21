@@ -2,6 +2,7 @@ import bcrypt
 import uuid
 from tortoise import fields, Model
 
+
 class User(Model):
     id = fields.UUIDField(pk=True, default=uuid.uuid4, db_type="char(36)")  # 新增db_type
     name = fields.CharField(max_length=100)
@@ -76,9 +77,13 @@ class Task(Model):
     id = fields.UUIDField(pk=True, default=uuid.uuid4, db_type="char(36)")
     title = fields.CharField(max_length=100)
     content = fields.TextField()
-    status = fields.CharField(max_length=20, default="未完成")
+    status = fields.CharField(
+        max_length=20,
+        default="未完成",
+        choices=['未完成', '进行中', '已完成']
+    )
     create_time = fields.DatetimeField(auto_now_add=True)
-    complete_time = fields.DatetimeField(null=True)
+    update_time = fields.DatetimeField(auto_now=True)
 
     # 统一关联用户表
     creator = fields.ForeignKeyField(

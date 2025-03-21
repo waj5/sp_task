@@ -81,12 +81,18 @@ async def query_task_by_id(task_id):
     return task
 
 # 更新任务
-async def update_task(task_id: str, task_data):
+async def update_task(task_id: str, task_data, current_user_id: str):
     try:
-        task = await Task.get(id=task_id)
-        update_data = task_data.model_dump(exclude_unset=True)
+        task = await Task.get(id=task_id).prefetch_related("creator", "designee")
 
-        # 处理designee_name转换（如果存在）
+        # 新权限验证：创建者或负责人可修改
+        if str(task.creator_id) != current_user_id and str(task.designee_id) != current_user_id:
+            raise HTTPException(403, "无权限修改此任务")
+        update_data = task_data.model_dump(exclude_unset=True)
+        if task_data.complete_time is not None:
+            task.status = "已完成"
+
+            # 处理designee_name转换（如果存在）
         if 'designee_name' in update_data:
             designee_id = await get_user_id_by_name(update_data['designee_name'])
             update_data['designee_id'] = designee_id
@@ -96,7 +102,7 @@ async def update_task(task_id: str, task_data):
         for key, value in update_data.items():
             setattr(task, key, value)
 
-        task.create_time = datetime.now()  # 更新修改时间
+        task.update_time = datetime.now()  # 更新修改时间
         await task.save()
         return task
     except DoesNotExist:

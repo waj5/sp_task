@@ -60,7 +60,7 @@ export default {
             const response = await login(this.form.username, this.form.password);
 
             // 根据后端返回的数据结构，存储 token
-            localStorage.setItem('token', response.token); // 确保 response.token 存在
+            localStorage.setItem('jwtToken', response.token); // 确保 response.token 存在
 
             // 跳转到首页
             this.$router.push({ name: 'Home' }); // 使用命名路由跳转

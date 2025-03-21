@@ -14,6 +14,7 @@ apiClient.interceptors.request.use(config => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  console.log('实际发送的Authorization头:', config.headers.Authorization)
   return config
 }, error => {
   return Promise.reject(error)
@@ -24,6 +25,12 @@ apiClient.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
+      ElMessage.warning('登录已过期，请重新登录')
+      console.error('认证失败详情:', {
+        url: error.config.url,
+        status: error.response.status,
+        data: error.response.data
+      })
       // Token过期处理
       localStorage.removeItem('jwtToken')
       window.location.href = '/login'
@@ -34,16 +41,24 @@ apiClient.interceptors.response.use(
 
 export const login = async (username, password) => {
   try {
+    console.log('请求参数:', { username, password }) // 新增
     const response = await apiClient.post('/auth/login', { username, password })
-    if (response.data.token) {
-      localStorage.setItem('jwtToken', response.data.token)
+    console.log('完整响应:', response) // 新增
+
+    // 检查字段名是否匹配后端返回
+    const receivedToken = response.data.access_token
+      || response.data.token
+      || response.data.jwt; // 增加更多可能的字段名
+
+    if (!receivedToken) {
+      console.error('未找到token字段，响应数据:', response.data)
+      console.log('Token存储完成，当前值:', localStorage.getItem('jwtToken'))
     }
     return response.data
   } catch (error) {
     throw new Error(error.response?.data?.message || '登录失败')
   }
 }
-
 export const fetchTasks = async () => {
   try {
     const response = await apiClient.get('/auth/tasks')
@@ -60,5 +75,17 @@ export const addTask = async (taskData) => {
     return response.data
   } catch (error) {
     throw new Error(error.response?.data?.message || '创建任务失败')
+  }
+}
+
+export const updateTaskStatus = async (taskId) => {
+  try {
+    const response = await apiClient.patch(`/auth/tasks/${taskId}`, {
+      status: "已完成",          // 明确发送状态
+      complete_time: new Date().toISOString()
+    })
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.detail || '更新任务状态失败')
   }
 }
