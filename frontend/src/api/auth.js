@@ -89,3 +89,11 @@ export const updateTaskStatus = async (taskId) => {
     throw new Error(error.response?.data?.detail || '更新任务状态失败')
   }
 }
+
+export const deleteTask = async (taskId) => {
+  try {
+    await apiClient.delete(`/auth/tasks/${taskId}`)
+  } catch (error) {
+    throw new Error(error.response?.data?.detail || '删除任务失败')
+  }
+}

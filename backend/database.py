@@ -112,10 +112,19 @@ async def update_task(task_id: str, task_data, current_user_id: str):
         )
 
 # 删除任务
-async def delete_task(task_id: str):
+async def delete_task(task_id: str, current_user_id: str):
     try:
-        task = await Task.get(id=task_id)
+        task = await Task.get(id=task_id).prefetch_related("creator")
+
+        # 权限验证
+        if str(task.creator_id) != current_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="无权限删除此任务"
+            )
+
         await task.delete()
+        return True
     except DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

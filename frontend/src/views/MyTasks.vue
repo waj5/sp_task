@@ -48,6 +48,12 @@
               class="complete-button">
               标记完成
             </el-button>
+             <el-button
+              :loading="deleting"
+              type="danger"
+              @click="deleteTask(task)">
+              删除任务
+            </el-button>
           </el-card>
         </el-collapse-item>
         <div v-if="tasks.length === 0" class="no-tasks">
@@ -66,9 +72,10 @@
 </template>
 
 <script>
-import { fetchTasks,updateTaskStatus } from "../api/auth";
+import { fetchTasks,updateTaskStatus,deleteTask } from "../api/auth";
 import { ElMessage } from "element-plus";
 import AddTask from './AddTask.vue' // 导入组件
+
 
 export default {
   name: "MyTasks",
@@ -81,6 +88,11 @@ export default {
       activeTaskId: null
     };
   },
+  data1() {
+  return {
+    deleting: false
+  }
+},
   methods: {
     // 修改后的菜单处理
     handleMenuSelect(index) {
@@ -111,6 +123,34 @@ export default {
         this.tasks = response || []; // 直接使用返回的数组
       } catch (error) {
         ElMessage.error("加载任务失败");
+      }
+    },
+
+    async deleteTask(task) {
+      try {
+        const confirm = await this.$confirm('确认删除？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+
+        if (confirm !== 'confirm') return // 确认用户真实点击
+
+        const response = await deleteTask(task.id)
+        ElMessage.success("删除成功")
+        await this.loadTasks()
+      } catch (error) {
+        console.error('完整错误对象:', error) // 添加详细日志
+        if (error.code === 'ECONNABORTED') {
+          ElMessage.error('请求超时，请检查网络')
+        } else if (error.response) {
+          ElMessage.error(`后端错误: ${error.response.data.detail}`)
+        } else if (error.request) {
+          console.log('请求已发出但无响应:', error.request)
+          ElMessage.error('服务器无响应')
+        } else {
+          ElMessage.error('请求配置错误')
+        }
       }
     },
 
