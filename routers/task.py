@@ -3,7 +3,7 @@ from backend.utils import get_current_user
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
-from backend.database import query_tasks_by_user_or_designee, get_designees_by_task, update_task, delete_task, query_tasks_fuzzy
+from backend.database import query_tasks_by_user_or_designee, get_designees_by_task, update_task, delete_task, query_tasks_fuzzy,get_user_id_by_name
 
 router = APIRouter(prefix="/auth", tags=["tasks"])
 
@@ -62,32 +62,35 @@ async def create_task(
     #     } for task in tasks]
     # }
 
+
 @router.patch("/tasks/{task_id}", status_code=200)
 async def update_task_by_id(
-    task_id: str,
-    task_update: TaskUpdate,
-    current_user_id: str = Depends(get_current_user)
+        task_id: str,
+        task_update: TaskUpdate,
+        current_user_id: str = Depends(get_current_user)
 ):
-    if 'designee_name' in update_data:
-        try:
-            new_designee = await User.get(name=update_data['designee_name'])
-            update_data['designee_id'] = str(new_designee.id)
-        except DoesNotExist:
-            raise HTTPException(400, detail="指定的负责人不存在")
+    update_data = task_update.model_dump(exclude_unset=True)
+
     try:
-        updated_task = await update_task(task_id, task_update, current_user_id)
-        response_data = {
+        # 改为调用数据库层方法
+        if 'designee_name' in update_data:
+            update_data['designee_id'] = await get_user_id_by_name(update_data['designee_name'])
+            del update_data['designee_name']
+
+        updated_task = await update_task(task_id, update_data, current_user_id)
+
+        return {
             "id": updated_task.id,
             "title": updated_task.title,
-            "status": updated_task.status,  # 新增
-            "creator_name": (await updated_task.creator).name,  # 新增
-            "designee_name": (await updated_task.designee).name  # 新增
+            "status": updated_task.status,
+            "creator_name": (await updated_task.creator).name,
+            "designee_name": (await updated_task.designee).name
         }
-        return response_data
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(500, detail=str(e))
+
 
 @router.delete("/tasks/{task_id}", status_code=status.HTTP_200_OK)
 async def delete_task_by_id(

@@ -84,32 +84,37 @@ async def query_task_by_id(task_id):
 async def update_task(task_id: str, task_data, current_user_id: str):
     try:
         task = await Task.get(id=task_id).prefetch_related("creator", "designee")
+        current_user = await User.get(id=current_user_id)
 
-        # 新权限验证：创建者或负责人可修改
-        if str(task.creator_id) != current_user_id and str(task.designee_id) != current_user_id and not current_user.is_admin:
+        # 权限验证
+        if (str(task.creator_id) != current_user_id
+            and str(task.designee_id) != current_user_id
+            and not current_user.is_admin):
             raise HTTPException(403, "无权限修改此任务")
-        update_data = task_data.model_dump(exclude_unset=True)
-        if task_data.complete_time is not None:
-            task.status = "已完成"
 
-            # 处理designee_name转换（如果存在）
-        if 'designee_name' in update_data:
-            designee_id = await get_user_id_by_name(update_data['designee_name'])
-            update_data['designee_id'] = designee_id
-            del update_data['designee_name']
+        # 数据转换
+        update_data = task_data if isinstance(task_data, dict) else task_data.model_dump(exclude_unset=True)
+
+        # 字段验证
+        valid_fields = {'title', 'content', 'status', 'designee_id', 'complete_time'}
+        if any(key not in valid_fields for key in update_data):
+            raise HTTPException(400, detail="包含无效字段")
+
+        # 状态自动更新逻辑
+        if 'complete_time' in update_data:
+            update_data['status'] = "已完成"
 
         # 更新字段
         for key, value in update_data.items():
             setattr(task, key, value)
 
-        task.update_time = datetime.now()  # 更新修改时间
+        task.update_time = datetime.now()
         await task.save()
         return task
     except DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"任务ID {task_id} 不存在"
-        )
+        raise HTTPException(404, detail=f"任务ID {task_id} 不存在")
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
 
 # 删除任务
 async def delete_task(task_id: str, current_user_id: str):
