@@ -86,7 +86,7 @@ async def update_task(task_id: str, task_data, current_user_id: str):
         task = await Task.get(id=task_id).prefetch_related("creator", "designee")
 
         # 新权限验证：创建者或负责人可修改
-        if str(task.creator_id) != current_user_id and str(task.designee_id) != current_user_id:
+        if str(task.creator_id) != current_user_id and str(task.designee_id) != current_user_id and not current_user.is_admin:
             raise HTTPException(403, "无权限修改此任务")
         update_data = task_data.model_dump(exclude_unset=True)
         if task_data.complete_time is not None:

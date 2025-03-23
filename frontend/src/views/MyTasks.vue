@@ -14,6 +14,9 @@
     <!-- 添加任务组件 -->
     <AddTask ref="addTask" @task-added="handleTaskAdded" />
 
+    <!-- 添加编辑任务组件（新增这行） -->
+    <EditTask ref="editTask" @task-updated="handleTaskUpdated" />
+
     <div class="my-tasks">
       <h1>我的任务</h1>
       <el-collapse v-model="activeTaskId" accordion>
@@ -48,6 +51,12 @@
               class="complete-button">
               标记完成
             </el-button>
+            <el-button
+              type="primary"
+              @click="openEditDialog(task)"
+              class="edit-button">
+              编辑任务
+            </el-button>
              <el-button
               :loading="deleting"
               type="danger"
@@ -75,12 +84,14 @@
 import { fetchTasks,updateTaskStatus,deleteTask } from "../api/auth";
 import { ElMessage } from "element-plus";
 import AddTask from './AddTask.vue' // 导入组件
+import EditTask from './EditTask.vue'
 
 
 export default {
   name: "MyTasks",
   components: {
-    AddTask // 注册组件
+    AddTask, // 注册组件
+    EditTask
   },
   data() {
     return {
@@ -99,6 +110,12 @@ export default {
       if (index === "1") {
         this.$refs.addTask.showDialog() // 调用子组件方法
       }
+    },
+   handleTaskUpdated() {
+    this.loadTasks()
+    },
+    openEditDialog(task) {
+      this.$refs.editTask.openDialog(task)
     },
 
     // 处理新增任务成功
@@ -163,7 +180,6 @@ export default {
   }
 };
 </script>
-
 <style>
 .my-tasks-container {
   padding: 20px;

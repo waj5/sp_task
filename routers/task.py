@@ -17,6 +17,7 @@ class TaskUpdate(BaseModel):
     title: Optional[str] = None  # 任务标题（可选）
     content: Optional[str] = None  # 任务内容（可选）
     status: Optional[str] = None
+    designee_name: Optional[str] = None
     complete_time: Optional[datetime] = None  # 完成时间（可选）
 
 
@@ -67,6 +68,12 @@ async def update_task_by_id(
     task_update: TaskUpdate,
     current_user_id: str = Depends(get_current_user)
 ):
+    if 'designee_name' in update_data:
+        try:
+            new_designee = await User.get(name=update_data['designee_name'])
+            update_data['designee_id'] = str(new_designee.id)
+        except DoesNotExist:
+            raise HTTPException(400, detail="指定的负责人不存在")
     try:
         updated_task = await update_task(task_id, task_update, current_user_id)
         response_data = {

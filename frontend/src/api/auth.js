@@ -97,3 +97,12 @@ export const deleteTask = async (taskId) => {
     throw new Error(error.response?.data?.detail || '删除任务失败')
   }
 }
+
+export const updateTaskDetail = async (taskId, taskData) => {
+  try {
+    const response = await apiClient.patch(`/auth/tasks/${taskId}`, taskData)
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.detail || '更新任务失败')
+  }
+}
