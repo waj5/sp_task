@@ -29,6 +29,9 @@
       </el-form>
     </el-card>
   </div>
+  <div class="register-link">
+    没有账号？<el-link type="primary" @click="$router.push('/register')">立即注册</el-link>
+  </div>
 </template>
 
 <script>
@@ -101,6 +104,10 @@ h2 {
 }
 
 .login-form {
+  margin-top: 20px;
+}
+.register-link {
+  text-align: center;
   margin-top: 20px;
 }
 </style>

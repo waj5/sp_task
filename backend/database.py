@@ -20,12 +20,42 @@ async def login_user(username: str, password: str):
         return user
     return None
 
-async def create_user(username: str, password: str, email: str, is_master: bool = True):
-    """统一用户创建逻辑"""
-    user = User(name=username, email=email)
-    user.set_password(password)
-    await user.save()
-    return user
+async def check_user_exists(username: str, email: str) -> bool:
+    """检查用户名或邮箱是否已存在"""
+    return await User.filter(Q(name=username) | Q(email=email)).exists()
+
+
+async def create_user(username: str, password: str, email: str, is_admin: bool = False) -> User:
+    """创建用户（带完整校验）"""
+    # 存在性检查
+    if await check_user_exists(username, email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="用户名或邮箱已被使用"
+        )
+
+    # 密码复杂度检查
+    if len(password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="密码长度至少8位"
+        )
+
+    try:
+        user = User(
+            name=username,
+            email=email,
+            is_admin=is_admin,
+            role='user'  # 默认角色
+        )
+        user.set_password(password)
+        await user.save()
+        return user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"用户创建失败: {str(e)}"
+        )
 
 async def delete_user(user_id: str, is_master: bool = True):
     user = await User.get(id=user_id)

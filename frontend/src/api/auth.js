@@ -106,3 +106,11 @@ export const updateTaskDetail = async (taskId, taskData) => {
     throw new Error(error.response?.data?.detail || '更新任务失败')
   }
 }
+export const register = async (userData) => {
+  try {
+    const response = await apiClient.post('/auth/register', userData)
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.detail || '注册失败')
+  }
+}

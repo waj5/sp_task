@@ -19,9 +19,6 @@ class UserCreate(BaseModel):
     name: str
     password: str
     email: str
-    is_admin: bool = True
-    sex: str = "未知"  # 默认值为“未知”
-    age: int = 0  # 默认值为0
 
     @validator('sex')
     def validate_sex(cls, v):
@@ -61,11 +58,24 @@ async def login(request: LoginRequest):
         return '登录失败'
 
 # 注册接口
-@router.post("/register")
+# 修改注册接口实现
+@router.post("/register", status_code=201)
 async def register(user: UserCreate):
     try:
-        # 调用 create_user 函数创建用户
-        new_user = await create_user(user.name, user.password, user.email, user.is_admin)
-        return {"message": "用户注册成功", "user_id": str(new_user.id)}
+        new_user = await create_user(
+            username=user.name,
+            password=user.password,
+            email=user.email
+        )
+        return {
+            "message": "注册成功",
+            "user_id": str(new_user.id),
+            "username": new_user.name
+        }
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"服务器错误: {str(e)}"
+        )

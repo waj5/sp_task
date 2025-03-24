@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../components/Login.vue'
 import Home from '../views/Home.vue'
 import MyTasks from '../views/MyTasks.vue'
+import Register from '../components/Register.vue'
 
 const routes = [
   {
@@ -33,6 +34,12 @@ const routes = [
       requiresAuth: true,
       title: '我的任务列表'
     }
+  },
+    {
+    path: '/register',
+    name: 'Register',
+    component: Register,
+    meta: { requiresAuth: false }
   }
 ]
 

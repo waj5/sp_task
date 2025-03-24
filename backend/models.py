@@ -23,6 +23,7 @@ class User(Model):
     class Meta:
         table = 'users'
         database = "default"
+        unique_together = [("name",), ("email",)]
 
 class Master(Model):
     id = fields.UUIDField(pk=True, default=uuid.uuid4, db_type="char(36)")  # 添加显式主键
