@@ -1,9 +1,11 @@
+from typing import List
+
 from tortoise import BaseDBAsyncClient
 
 
-async def upgrade(db: BaseDBAsyncClient) -> str:
-    return """
-        CREATE TABLE IF NOT EXISTS `users` (
+async def upgrade(db: BaseDBAsyncClient) -> List[str]:
+    return [
+        """CREATE TABLE IF NOT EXISTS `users` (
     `id` CHAR(36) NOT NULL  PRIMARY KEY,
     `name` VARCHAR(100) NOT NULL,
     `password` VARCHAR(128) NOT NULL,
@@ -50,8 +52,10 @@ CREATE TABLE IF NOT EXISTS `aerich` (
     `app` VARCHAR(100) NOT NULL,
     `content` JSON NOT NULL
 ) CHARACTER SET utf8mb4;"""
+    ]
 
 
-async def downgrade(db: BaseDBAsyncClient) -> str:
-    return """
-        """
+async def downgrade(db: BaseDBAsyncClient) -> List[str]:
+    return [
+        
+    ]

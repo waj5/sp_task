@@ -9,7 +9,8 @@ class User(Model):
     password = fields.CharField(max_length=128)
     email = fields.CharField(max_length=100)
     is_admin = fields.BooleanField(default=False)
-    role = fields.CharField(max_length=20, default='administered')  # 新增角色字段
+    role = fields.CharField(max_length=20, default='administered')
+
 
     # 公共密码验证方法
     def set_password(self, raw_password: str):
@@ -26,22 +27,20 @@ class User(Model):
         unique_together = [("name",), ("email",)]
 
 class Master(Model):
-    id = fields.UUIDField(pk=True, default=uuid.uuid4, db_type="char(36)")  # 添加显式主键
+    id = fields.UUIDField(pk=True, default=uuid.uuid4, db_type="char(36)")
     user = fields.OneToOneField(
         'models.User',
-        related_name='master',
+        related_name='master_profile',
         db_constraint=False,
         db_type="char(36)"
     )
     administered = fields.ManyToManyField(
         "models.Administered",
         related_name="masters",
-        through="masters_administered",
-        forward_key={"db_column": "master_id", "db_type": "char(36)"},
-        backward_key={"db_column": "administered_id", "db_type": "char(36)"}
+        through="masters_administered"
     )
     class Meta:
-        table ='master'
+        table = 'master'
         database = "default"
 
 class Administered(Model):
@@ -49,7 +48,7 @@ class Administered(Model):
     user = fields.OneToOneField('models.User', related_name='administered', db_type="char(36)")
     master = fields.ForeignKeyField(
         'models.Master',
-        related_name='administereds',
+        related_name='administered_profile',
         null=True,
         db_type="char(36)"
     )

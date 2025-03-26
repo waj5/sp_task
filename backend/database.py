@@ -1,12 +1,17 @@
-from tortoise.exceptions import DoesNotExist
+from tortoise.exceptions import DoesNotExist, ValidationError, IntegrityError
+from tortoise.transactions import in_transaction
+
 from models import Master, Administered, Task, User  # 新增User模型导入
 from tortoise import Tortoise
 from tortoise_config import TORTOISE_ORM
 from tortoise.expressions import Q
 from fastapi import HTTPException, status
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
+import logging
 
+logger = logging.getLogger(__name__)
 
 async def init():
     await Tortoise.init(config=TORTOISE_ORM)
@@ -25,10 +30,28 @@ async def check_user_exists(username: str, email: str) -> bool:
     return await User.filter(Q(name=username) | Q(email=email)).exists()
 
 
-async def create_user(username: str, password: str, email: str, is_admin: bool = False) -> User:
-    """创建用户（带完整校验）"""
+
+
+async def create_user(
+        username: str,
+        password: str,
+        email: str,
+        is_master: bool,
+        master_id: Optional[str] = None
+) -> User:
+    logger.info(f"开始创建用户: {username}, {email}, is_master: {is_master}")
+
+    # 检查 password 是否为 None
+    if password is None:
+        logger.warning("密码不能为空")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="密码不能为空"
+        )
+
     # 存在性检查
-    if await check_user_exists(username, email):
+    if await User.filter(Q(name=username) | Q(email=email)).exists():
+        logger.warning(f"用户名或邮箱已被使用: {username}, {email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="用户名或邮箱已被使用"
@@ -36,26 +59,73 @@ async def create_user(username: str, password: str, email: str, is_admin: bool =
 
     # 密码复杂度检查
     if len(password) < 8:
+        logger.warning(f"密码长度不足: {password}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="密码长度至少8位"
         )
 
+    # 非管理员必须指定有效管理员
+    if not is_master:
+        if not master_id:
+            logger.warning(f"非管理员用户未指定管理员ID")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="需要指定管理员ID"
+            )
+
+        # 验证管理员是否存在
+        master_user = await User.get_or_none(id=master_id)
+        if not master_user or not await Master.exists(user=master_user):
+            logger.warning(f"指定的管理员不存在: {master_id}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="指定的管理员不存在"
+            )
+
     try:
-        user = User(
-            name=username,
-            email=email,
-            is_admin=is_admin,
-            role='user'  # 默认角色
-        )
-        user.set_password(password)
-        await user.save()
-        return user
+        async with in_transaction():  # 使用事务确保数据一致性
+            # 创建基础用户，暂时设置 password 为空字符串
+            user = await User.create(
+                name=username,
+                email=email,
+                is_admin=is_master,
+                role='master' if is_master else 'administered',
+                password=""  # 临时设置一个默认值
+            )
+            user.id = UUID(str(user.id))
+            user.set_password(password)  # 覆盖为实际值
+            await user.save()
+            logger.info(f"用户创建成功: {user.id}")
+
+            # 创建关联关系
+            if is_master:
+                await Master.create(user=user)
+                logger.info(f"创建管理员关联: {user.id}")
+            else:
+                master = await Master.get(user_id=master_id)
+                administered = await Administered.create(user=user)
+                await master.administered.add(administered)
+                logger.info(f"创建普通用户关联: {user.id}, 管理员: {master_id}")
+
+            return user
+
     except Exception as e:
+        logger.error(f"用户创建失败: {str(e)}")
+        # 自动回滚事务
+        error_detail = f"用户创建失败: {str(e)}"
+        if isinstance(e, ValidationError):
+            error_detail = "数据验证失败，请检查字段格式"
+        elif isinstance(e, IntegrityError):
+            error_detail = "数据完整性错误，可能违反唯一约束"
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"用户创建失败: {str(e)}"
+            detail=error_detail
         )
+
+
+
 
 async def delete_user(user_id: str, is_master: bool = True):
     user = await User.get(id=user_id)
@@ -145,6 +215,9 @@ async def update_task(task_id: str, task_data, current_user_id: str):
         raise HTTPException(404, detail=f"任务ID {task_id} 不存在")
     except Exception as e:
         raise HTTPException(500, detail=str(e))
+    except ValidationError as e:
+        print(f"Validation errors: {e.args}")  # 添加详细日志
+        error_detail = f"字段验证失败: {str(e)}"
 
 # 删除任务
 async def delete_task(task_id: str, current_user_id: str):

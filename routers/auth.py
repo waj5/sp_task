@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from pydantic.v1 import validator
+from pydantic import BaseModel, field_validator
+from typing import Optional
 
 from backend.database import login_user, init, create_user
 import jwt
 from datetime import datetime, timedelta
 from backend.config import SECRET_KEY, ALGORITHM
+import re
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
@@ -19,21 +20,29 @@ class UserCreate(BaseModel):
     name: str
     password: str
     email: str
+    is_master: bool
+    master_id: Optional[str] = None
 
-    @validator('sex')
-    def validate_sex(cls, v):
-        if v is None:  # 如果没有传值，不进行校验
-            return v
-        if v not in ["男", "女", "未知"]:
-            raise ValueError('性别必须是“男”、“女”或“未知”')
+    @field_validator('email')
+    def validate_email(cls, v):
+        if not re.match(r'^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$', v):
+            raise ValueError('无效邮箱格式')
         return v
 
-    @validator('age')
-    def validate_age(cls, v):
-        if v is None:  # 如果没有传值，不进行校验
-            return v
-        if v < 0 or v > 150:
-            raise ValueError('年龄必须在0到150之间')
+    @field_validator('password')
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('密码至少8位')
+        if not any(c.isupper() for c in v):
+            raise ValueError('需要大写字母')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('需要数字')
+        return v
+
+    @field_validator('master_id')
+    def validate_master_id(cls, v, values):
+        if not values.data.get('is_master') and not v:
+            raise ValueError('普通用户需指定管理员ID')
         return v
 
 # 登录接口
@@ -65,12 +74,15 @@ async def register(user: UserCreate):
         new_user = await create_user(
             username=user.name,
             password=user.password,
-            email=user.email
+            email=user.email,
+            is_master=user.is_master,
+            master_id=user.master_id
         )
         return {
             "message": "注册成功",
             "user_id": str(new_user.id),
-            "username": new_user.name
+            "username": new_user.name,
+            "role": "管理员" if user.is_master else "普通用户"
         }
     except HTTPException as e:
         raise e

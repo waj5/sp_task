@@ -7,7 +7,7 @@ TORTOISE_ORM={
                 "port": "3306",
                 "user": "root",
                 "password": "123456",
-                "database": "sp_task",
+                "database": "sp_task_test",
                 "minsize": 1,
                 "maxsize": 10,
                 "charset": "utf8mb4",
