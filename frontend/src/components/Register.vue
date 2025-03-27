@@ -16,7 +16,7 @@
           <el-input
             v-model="form.password"
             type="password"
-            placeholder="至少8位"
+            placeholder="至少8位，包含大写字母和数字"
             show-password
           ></el-input>
         </el-form-item>
@@ -29,6 +29,15 @@
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="form.email" placeholder="有效邮箱地址"></el-input>
+        </el-form-item>
+        <el-form-item label="角色" prop="isMaster">
+          <el-radio-group v-model="form.isMaster">
+            <el-radio :label="true">管理者</el-radio>
+            <el-radio :label="false">普通用户</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="!form.isMaster" label="管理者ID" prop="masterId">
+          <el-input v-model="form.masterId" placeholder="请输入管理者的ID"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="submitForm">立即注册</el-button>
@@ -51,6 +60,10 @@ export default {
         callback(new Error('请输入密码'))
       } else if (value.length < 8) {
         callback(new Error('密码长度至少8位'))
+      } else if (!/[A-Z]/.test(value)) {
+        callback(new Error('密码必须包含至少一个大写字母'))
+      } else if (!/[0-9]/.test(value)) {
+        callback(new Error('密码必须包含至少一个数字'))
       } else {
         if (this.form.confirmPassword !== '') {
           this.$refs.registerForm.validateField('confirmPassword')
@@ -73,7 +86,9 @@ export default {
         name: '',
         password: '',
         confirmPassword: '',
-        email: ''
+        email: '',
+        isMaster: true, // 默认选择为管理者
+        masterId: '' // 普通用户需要填写管理者ID
       },
       rules: {
         name: [
@@ -90,6 +105,9 @@ export default {
         email: [
           { required: true, message: '请输入邮箱地址', trigger: 'blur' },
           { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] }
+        ],
+        masterId: [
+          { required: true, message: '请输入管理者ID', trigger: 'blur' }
         ]
       }
     }
@@ -99,11 +117,14 @@ export default {
       this.$refs.registerForm.validate(async (valid) => {
         if (valid) {
           try {
-            await register({
+            const userData = {
               name: this.form.name,
               password: this.form.password,
-              email: this.form.email
-            })
+              email: this.form.email,
+              is_master: this.form.isMaster,
+              master_id: this.form.isMaster ? null : this.form.masterId
+            }
+            await register(userData)
             ElMessage.success('注册成功，请登录')
             this.$router.push('/login')
           } catch (error) {

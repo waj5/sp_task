@@ -44,25 +44,27 @@
               <p><strong>负责人:</strong> {{ task.designee_name }}</p>
               <p><strong>创建人:</strong> {{ task.creator_name }}</p>
             </div>
-             <el-button
-              v-if="task.status === '未完成'"
-              type="success"
-              @click="markTaskComplete(task)"
-              class="complete-button">
-              标记完成
-            </el-button>
-            <el-button
-              type="primary"
-              @click="openEditDialog(task)"
-              class="edit-button">
-              编辑任务
-            </el-button>
-             <el-button
-              :loading="deleting"
-              type="danger"
-              @click="deleteTask(task)">
-              删除任务
-            </el-button>
+            <div class="task-actions">
+              <el-button
+                v-if="task.status === '未完成'"
+                type="success"
+                @click="markTaskComplete(task)"
+                class="complete-button">
+                标记完成
+              </el-button>
+              <el-button
+                type="primary"
+                @click="openEditDialog(task)"
+                class="edit-button">
+                编辑任务
+              </el-button>
+              <el-button
+                :loading="deleting"
+                type="danger"
+                @click="deleteTask(task)">
+                删除任务
+              </el-button>
+            </div>
           </el-card>
         </el-collapse-item>
         <div v-if="tasks.length === 0" class="no-tasks">
@@ -81,11 +83,10 @@
 </template>
 
 <script>
-import { fetchTasks,updateTaskStatus,deleteTask } from "../api/auth";
+import { fetchTasks, updateTaskStatus, deleteTask } from "../api/auth";
 import { ElMessage } from "element-plus";
 import AddTask from './AddTask.vue' // 导入组件
 import EditTask from './EditTask.vue'
-
 
 export default {
   name: "MyTasks",
@@ -96,14 +97,10 @@ export default {
   data() {
     return {
       tasks: [],
-      activeTaskId: null
+      activeTaskId: null,
+      deleting: false
     };
   },
-  data1() {
-  return {
-    deleting: false
-  }
-},
   methods: {
     // 修改后的菜单处理
     handleMenuSelect(index) {
@@ -111,8 +108,8 @@ export default {
         this.$refs.addTask.showDialog() // 调用子组件方法
       }
     },
-   handleTaskUpdated() {
-    this.loadTasks()
+    handleTaskUpdated() {
+      this.loadTasks()
     },
     openEditDialog(task) {
       this.$refs.editTask.openDialog(task)
@@ -180,7 +177,8 @@ export default {
   }
 };
 </script>
-<style>
+
+<style scoped>
 .my-tasks-container {
   padding: 20px;
 }
@@ -206,8 +204,16 @@ export default {
   margin: 5px 0;
 }
 
-.complete-button {
+.task-actions {
+  display: flex;
+  gap: 10px; /* 按钮之间的间距 */
+  align-items: center;
+  justify-content: center; /* 水平居中对齐 */
   margin-top: 10px;
+}
+
+.complete-button, .edit-button, .delete-button {
+  width: 100px; /* 统一按钮宽度 */
 }
 
 .el-collapse-item__content {

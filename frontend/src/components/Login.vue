@@ -20,6 +20,7 @@
             v-model="form.password"
             type="password"
             placeholder="请输入密码"
+            show-password
           ></el-input>
         </el-form-item>
         <el-form-item>
@@ -27,10 +28,10 @@
           <el-button @click="onReset">重置</el-button>
         </el-form-item>
       </el-form>
+      <div class="register-link">
+        <el-link type="primary" @click="$router.push('/register')">没有账号？立即注册</el-link>
+      </div>
     </el-card>
-  </div>
-  <div class="register-link">
-    没有账号？<el-link type="primary" @click="$router.push('/register')">立即注册</el-link>
   </div>
 </template>
 
@@ -96,6 +97,7 @@ export default {
 .login-card {
   width: 400px;
   padding: 20px;
+  position: relative; /* 为注册链接的绝对定位提供参考 */
 }
 
 h2 {
@@ -106,8 +108,10 @@ h2 {
 .login-form {
   margin-top: 20px;
 }
+
 .register-link {
-  text-align: center;
-  margin-top: 20px;
+  position: absolute; /* 绝对定位 */
+  right: 20px; /* 距离右侧20px */
+  bottom: 10px; /* 距离底部10px */
 }
 </style>
