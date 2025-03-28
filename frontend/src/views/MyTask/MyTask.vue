@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { fetchTasks, updateTaskStatus, deleteTask as apiDeleteTask } from '@/api/auth';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import EditTask from '@/views/EditTask/EditTask.vue';
+import AddTask from '@/views/AddTask/AddTask.vue';
 
 // 任务列表
 const tasks = ref([]);
@@ -14,10 +15,20 @@ const router = useRouter();
 // 获取 EditTask 组件实例
 const editTaskRef = ref(null);
 
+// 获取 AddTask 组件实例
+const addTaskRef = ref(null);
+
 // 定义 openEditDialog 方法
 const openEditDialog = (task) => {
   if (editTaskRef.value) {
     editTaskRef.value.openDialog(task); // 调用 EditTask 的 openDialog 方法
+  }
+};
+
+// 定义 handleMenuSelect 方法
+const handleMenuSelect = (index) => {
+  if (index === '1') {
+    addTaskRef.value.showDialog(); // 调用 AddTask 的 showDialog 方法
   }
 };
 
@@ -97,7 +108,7 @@ onMounted(() => {
     </el-menu>
 
     <!-- 添加任务组件 -->
-    <AddTask @task-added="loadTasks" />
+    <AddTask ref="addTaskRef" @task-added="loadTasks" />
 
     <!-- 添加编辑任务组件 -->
     <EditTask ref="editTaskRef" @task-updated="loadTasks" />

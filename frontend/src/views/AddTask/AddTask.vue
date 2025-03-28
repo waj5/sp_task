@@ -3,6 +3,9 @@ import { ref, reactive } from 'vue';
 import { addTask as apiAddTask } from '@/api/auth';
 import { ElMessage } from 'element-plus';
 
+// 定义 emit 函数
+const emit = defineEmits(['task-added']);
+
 const dialogVisible = ref(false);
 const taskFormRef = ref(null);
 const isSubmitting = ref(false);
