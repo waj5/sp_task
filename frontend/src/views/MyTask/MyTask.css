@@ -1,0 +1,52 @@
+.my-tasks-container {
+  padding: 20px;
+}
+
+.my-tasks {
+  text-align: center;
+  margin: 20px auto;
+  max-width: 800px;
+}
+
+.task-title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.task-detail-card {
+  margin-top: 10px;
+  padding: 10px;
+  text-align: left;
+}
+
+.task-info p {
+  margin: 5px 0;
+}
+
+.task-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.complete-button, .edit-button, .delete-button {
+  width: 100px;
+}
+
+.el-collapse-item__content {
+  text-align: left;
+}
+
+.no-tasks {
+  text-align: center;
+  color: #999;
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .el-dialog {
+    width: 90% !important;
+  }
+}

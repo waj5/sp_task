@@ -1,0 +1,7 @@
+.el-input {
+  width: 100%;
+}
+
+:deep(.el-dialog__body) {
+  padding: 20px 30px;
+}

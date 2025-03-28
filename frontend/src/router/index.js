@@ -1,8 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import Login from '../components/Login.vue'
-import Home from '../views/Home.vue'
-import MyTasks from '../views/MyTasks.vue'
-import Register from '../components/Register.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import Login from '@/components/Login.vue';
+import Home from '@/views/Home/Home.vue';
+import MyTasks from '@/views/MyTask/MyTask.vue';
+import Register from '@/components/Register.vue';
 
 const routes = [
   {
@@ -11,7 +11,7 @@ const routes = [
       // 根据登录状态动态跳转
       return localStorage.getItem('jwtToken')
         ? { name: 'Home' }
-        : { name: 'Login' }
+        : { name: 'Login' };
     }
   },
   {
@@ -35,48 +35,45 @@ const routes = [
       title: '我的任务列表'
     }
   },
-    {
+  {
     path: '/register',
     name: 'Register',
     component: Register,
     meta: { requiresAuth: false }
   }
-]
+];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-})
+});
 
 // 改进后的导航守卫
 router.beforeEach((to, from, next) => {
-     const isAuthenticated = localStorage.getItem('jwtToken');
+  const isAuthenticated = localStorage.getItem('jwtToken');
 
-     // 白名单机制
-     const authWhitelist = ['Login','Home'];
+  // 退出登录后访问根路径
+  if (to.path === '/' && !isAuthenticated) {
+    next({ name: 'Login' });
+    return;
+  }
 
-     // 退出登录后访问根路径
-     if (to.path === '/' && !isAuthenticated) {
-       next({ name: 'Login' });
-       return;
-     }
+  // 需要登录且未认证
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next({
+      name: 'Login',
+      query: { redirect: to.fullPath }
+    });
+    return;
+  }
 
-     // 需要登录且未认证
-     if (to.meta.requiresAuth && !isAuthenticated) {
-       next({
-         name: 'Login',
-         query: { redirect: to.fullPath }
-       });
-       return;
-     }
+  // 已登录时访问登录页
+  if (to.name === 'Login' && isAuthenticated) {
+    next({ name: 'Home' });
+    return;
+  }
 
-     // 已登录时访问登录页
-     if (to.name === 'Login' && isAuthenticated) {
-       next({ name: 'Home' });
-       return;
-     }
+  next();
+});
 
-     next();
-   });
-
-export default router
+export default router;
