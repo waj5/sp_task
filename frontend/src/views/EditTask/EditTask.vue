@@ -1,55 +1,24 @@
+<!-- views/EditTask/EditTask.vue -->
 <script setup>
-import { ref } from 'vue';
-import { updateTaskDetail } from '@/api/auth.js';
-import { ElMessage } from 'element-plus';
+import { useEditTask } from './useEditTask'
 
-// 定义 emit
-const emit = defineEmits(['task-updated']);
+const emit = defineEmits(['task-updated'])
+const {
+  dialogVisible,
+  form,
+  openDialog,
+  submitEdit
+} = useEditTask(emit)
 
-const dialogVisible = ref(false);
-const form = ref({
-  title: '',
-  content: '',
-  designee_name: '',
-  status: '未完成'
-});
-const currentTaskId = ref(null);
-
-const openDialog = (task) => {
-  currentTaskId.value = task.id;
-  form.value = {
-    title: task.title,
-    content: task.content,
-    designee_name: task.designee_name,
-    status: task.status
-  };
-  dialogVisible.value = true;
-};
-
-const submitEdit = async () => {
-  try {
-    if (!form.value.designee_name.trim()) {
-      ElMessage.warning('负责人不能为空');
-      return;
-    }
-    await updateTaskDetail(currentTaskId.value, form.value);
-    ElMessage.success('任务修改成功');
-    emit('task-updated'); // 触发事件
-    dialogVisible.value = false;
-  } catch (error) {
-    console.error('完整错误信息:', error);
-    ElMessage.error(error.message || '修改失败');
-  }
-};
-
-defineExpose({ openDialog }); // 暴露 openDialog 方法
+defineExpose({ openDialog })
 </script>
 
 <template>
   <el-dialog
     v-model="dialogVisible"
     title="编辑任务"
-    width="40%">
+    width="40%"
+  >
     <el-form :model="form" label-width="80px">
       <el-form-item label="任务标题">
         <el-input v-model="form.title" />

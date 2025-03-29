@@ -1,18 +1,19 @@
-import { ref, reactive } from 'vue';
-import { addTask as apiAddTask } from '@/api/auth';
-import { ElMessage } from 'element-plus';
+import { reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import { addTask } from '@/api/auth'
 
-export default (emit) => {
-  const dialogVisible = ref(false);
-  const taskFormRef = ref(null);
-  const isSubmitting = ref(false);
+export function useAddTask(emit) {
+  const dialogVisible = ref(false)
+  const taskFormRef = ref(null)
+  const isSubmitting = ref(false)
+
   const formData = reactive({
     title: '',
     content: '',
     designeeName: ''
-  });
+  })
 
-  const formRules = {
+  const formRules = reactive({
     title: [
       { required: true, message: '请输入任务标题', trigger: 'blur' },
       { max: 50, message: '标题长度不能超过50个字符', trigger: 'blur' }
@@ -24,45 +25,52 @@ export default (emit) => {
     designeeName: [
       { required: true, message: '请输入负责人姓名', trigger: 'blur' }
     ]
-  };
+  })
 
   const showDialog = () => {
-    dialogVisible.value = true;
-  };
+    dialogVisible.value = true
+  }
 
   const handleSubmit = async () => {
     try {
-      isSubmitting.value = true;
-      await taskFormRef.value.validate();
-      await apiAddTask({
+      isSubmitting.value = true
+      await taskFormRef.value.validate()
+      await addTask({
         title: formData.title,
         content: formData.content,
         designee_name: formData.designeeName
-      });
-      ElMessage.success('任务创建成功');
-      dialogVisible.value = false;
-      emit('task-added');
+      })
+      ElMessage.success('任务创建成功')
+      dialogVisible.value = false
+      resetForm()
+      emit('task-added')
     } catch (error) {
-      console.error('任务创建失败:', error);
-      const errorMessage = error.response?.data?.message || '创建任务失败，请稍后重试';
-      ElMessage.error(errorMessage);
+      console.error('任务创建失败:', error)
+      const errorMessage = error.response?.data?.message || '创建任务失败，请稍后重试'
+      ElMessage.error(errorMessage)
     } finally {
-      isSubmitting.value = false;
+      isSubmitting.value = false
     }
-  };
+  }
+
+  const resetForm = () => {
+    if (taskFormRef.value) {
+      taskFormRef.value.resetFields()
+    }
+  }
 
   const handleDialogClose = () => {
-    taskFormRef.value?.resetFields();
-  };
+    resetForm()
+  }
 
   return {
     dialogVisible,
     taskFormRef,
-    isSubmitting,
     formData,
     formRules,
+    isSubmitting,
     showDialog,
     handleSubmit,
     handleDialogClose
-  };
-};
+  }
+}
