@@ -1,6 +1,7 @@
 <!-- views/EditTask/EditTask.vue -->
 <script setup>
 import { useEditTask } from './useEditTask'
+import './EditTask.css'
 
 const emit = defineEmits(['task-updated'])
 const {

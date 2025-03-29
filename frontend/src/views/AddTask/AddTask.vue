@@ -1,6 +1,7 @@
 <!-- views/AddTask/AddTask.vue -->
 <script setup>
 import { useAddTask } from './useAddTask'
+import './AddTask.css'
 
 const emit = defineEmits(['task-added'])
 const {
