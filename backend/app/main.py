@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, task
-from backend.tortoise_config import TORTOISE_ORM
+from backend.config.tortoise_config import TORTOISE_ORM
 from tortoise import Tortoise
 import uvicorn
 

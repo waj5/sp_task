@@ -1,9 +1,9 @@
 from tortoise.exceptions import DoesNotExist, ValidationError, IntegrityError
 from tortoise.transactions import in_transaction
 
-from models import Master, Administered, Task, User  # 新增User模型导入
+from backend.models.models import Master, Administered, Task, User  # 新增User模型导入
 from tortoise import Tortoise
-from tortoise_config import TORTOISE_ORM
+from backend.config.tortoise_config import TORTOISE_ORM
 from tortoise.expressions import Q
 from fastapi import HTTPException, status
 from datetime import datetime

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from backend.utils import get_current_user
+from backend.utils.utils import get_current_user
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
-from backend.database import query_tasks_by_user_or_designee, get_designees_by_task, update_task, delete_task, query_tasks_fuzzy,get_user_id_by_name
+from backend.database.database import query_tasks_by_user_or_designee, get_designees_by_task, update_task, delete_task, query_tasks_fuzzy,get_user_id_by_name
 
 router = APIRouter(prefix="/auth", tags=["tasks"])
 

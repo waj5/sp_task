@@ -2,10 +2,10 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, field_validator
 from typing import Optional
 
-from backend.database import login_user, init, create_user
+from backend.database.database import login_user, init, create_user
 import jwt
 from datetime import datetime, timedelta
-from backend.config import SECRET_KEY, ALGORITHM
+from backend.config.config import SECRET_KEY, ALGORITHM
 import re
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
