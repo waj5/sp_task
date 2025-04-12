@@ -28,7 +28,8 @@ const {
   newTask,
   showTaskDetails,
   createTask,
-  completeTask
+  completeTask,
+  showCreateTaskDialog
 } = useMyTask()
 
 // 初始化加载
@@ -77,10 +78,10 @@ onMounted(() => {
                     <span class="status-label">状态:</span>
                     <span class="status-value">{{ task.status }}</span>
                   </div>
-                  <div class="book-pages-indicator">
-                    <span class="pages-dots"></span>
-                    <span class="pages-dots"></span>
-                    <span class="pages-dots"></span>
+                  <div class="task-actions">
+                    <el-button type="primary" size="small" @click.stop="completeTask(task)">完成</el-button>
+                    <el-button type="primary" size="small" @click.stop="openEditDialog(task)">编辑</el-button>
+                    <el-button type="danger" size="small" @click.stop="deleteTaskHandler(task)">删除</el-button>
                   </div>
                 </div>
               </div>
@@ -125,8 +126,10 @@ onMounted(() => {
                 <h4>任务内容</h4>
                 <p>{{ selectedTask.content }}</p>
               </div>
-              <div class="task-actions" v-if="selectedTask.status !== '已完成'">
-                <el-button type="success" @click="completeTask(selectedTask)">完成任务</el-button>
+              <div class="task-actions">
+                <el-button v-if="selectedTask.status !== '已完成'" type="success" @click="completeTask(selectedTask)">完成任务</el-button>
+                <el-button type="primary" @click="openEditDialog(selectedTask)">编辑任务</el-button>
+                <el-button type="danger" @click="deleteTaskHandler(selectedTask)">删除任务</el-button>
               </div>
             </div>
           </div>

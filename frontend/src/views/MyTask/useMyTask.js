@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { fetchTasks, updateTaskStatus, deleteTask } from '@/api/auth'
+import { fetchTasks, updateTaskStatus, deleteTask, addTask } from '@/api/auth'
 
 export function useMyTask() {
   const router = useRouter()
@@ -59,8 +59,13 @@ export function useMyTask() {
       return
     }
     try {
-      // 这里需要调用创建任务的API
-      ElMessage.success("创建成功")
+      const taskData = {
+        title: newTask.value.title,
+        content: newTask.value.content,
+        designee_name: newTask.value.designee_name
+      }
+      await addTask(taskData)
+      ElMessage.success('任务创建成功')
       createDialogVisible.value = false
       await loadTasks()
       // 重置表单
@@ -70,7 +75,12 @@ export function useMyTask() {
         designee_name: ''
       }
     } catch (error) {
-      ElMessage.error("创建失败")
+      console.error('创建任务失败:', error)
+      if (error.response) {
+        ElMessage.error(`创建失败: ${error.response.data.detail || '未知错误'}`)
+      } else {
+        ElMessage.error("创建失败，请重试")
+      }
     }
   }
 
