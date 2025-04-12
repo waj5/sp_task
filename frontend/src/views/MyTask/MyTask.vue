@@ -21,7 +21,14 @@ const {
   handleMenuSelect,
   openEditDialog,
   goToHome,
-  logout
+  logout,
+  dialogVisible,
+  selectedTask,
+  createDialogVisible,
+  newTask,
+  showTaskDetails,
+  createTask,
+  completeTask
 } = useMyTask()
 
 // 初始化加载
@@ -31,124 +38,133 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="my-tasks-container" :style="myTaskStyle">
-    <!-- 左侧菜单 -->
-    <el-menu
-      class="side-menu"
-      default-active="1"
-      @select="handleMenuSelect"
+  <div class="my-task" :style="myTaskStyle">
+    <table class="page-layout">
+      <tr>
+        <td class="header-cell">
+          <h1>我的任务</h1>
+        </td>
+      </tr>
+      <tr>
+        <td class="nav-cell">
+          <div class="nav-buttons">
+            <el-button type="primary" :plain="true" @click="goToHome">首页</el-button>
+            <el-button type="primary" :plain="false">我的任务</el-button>
+            <el-button type="success" @click="showCreateTaskDialog">新建任务</el-button>
+          </div>
+          <div class="header-actions">
+            <el-button type="danger" @click="logout">退出登录</el-button>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="content-cell">
+          <div class="task-grid">
+            <div
+              v-for="task in tasks"
+              :key="task.id"
+              class="task-card"
+              @click="showTaskDetails(task)"
+            >
+              <div class="book-spine"></div>
+              <div class="book-content">
+                <div class="book-title">
+                  <h3>{{task.title}}</h3>
+                  <div class="book-author">{{ task.designee_name }}</div>
+                </div>
+                <div class="task-preview">
+                  <div class="book-status">
+                    <span class="status-label">状态:</span>
+                    <span class="status-value">{{ task.status }}</span>
+                  </div>
+                  <div class="book-pages-indicator">
+                    <span class="pages-dots"></span>
+                    <span class="pages-dots"></span>
+                    <span class="pages-dots"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- 任务详情对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      title="任务详情"
+      width="70%"
+      center
+      class="book-dialog"
+      :modal-append-to-body="false"
+      :append-to-body="true"
+      :close-on-click-modal="false"
+      :close-on-press-escape="true"
+      :show-close="true"
+      :destroy-on-close="true"
     >
-      <el-menu-item index="1">
-        <span>添加任务</span>
-      </el-menu-item>
-    </el-menu>
-
-    <!-- 添加任务组件 -->
-    <AddTask
-      ref="addTaskRef"
-      @task-added="loadTasks"
-    />
-
-    <!-- 编辑任务组件 -->
-    <EditTask
-      ref="editTaskRef"
-      @task-updated="loadTasks"
-    />
-
-    <!-- 主内容区 -->
-    <div class="my-tasks">
-      <div class="header">
-        <h1>我的任务</h1>
-        <div class="nav-buttons">
-          <el-button type="primary" plain @click="goToHome">首页</el-button>
-          <el-button type="primary">我的任务</el-button>
-        </div>
-        <div class="header-actions">
-          <el-button type="danger" @click="logout">退出登录</el-button>
-        </div>
-      </div>
-
-      <div class="task-grid">
-        <div
-          v-for="task in tasks"
-          :key="task.id"
-          class="task-card"
-          :style="{
-            backgroundColor:`hsl(${Math.random()*360},70%,85%)`,
-            transform: `rotateY(${Math.random()*10-5}deg)`
-          }"
-          @click="() => activeTaskId = task.id"
-        >
+      <div v-if="selectedTask" class="task-details">
+        <div class="book-cover">
           <div class="book-spine"></div>
-          <div class="book-content">
-            <h3>{{ task.title }}</h3>
-            <div class="task-preview">
-              <p><strong>负责人:</strong> {{ task.designee_name }}</p>
-              <p><strong>状态:</strong> {{ task.status }}</p>
+          <div class="book-pages">
+            <div class="book-left">
+              <h3>{{ selectedTask.title }}</h3>
+              <div class="task-meta">
+                <p><strong>任务ID:</strong> {{ selectedTask.id }}</p>
+                <p><strong>创建时间:</strong> {{ selectedTask.create_time }}</p>
+                <p v-if="selectedTask.status === '已完成'">
+                  <strong>完成时间:</strong> {{ selectedTask.complete_time }}
+                </p>
+                <p><strong>负责人:</strong> {{ selectedTask.designee_name }}</p>
+                <p><strong>创建人:</strong> {{ selectedTask.creator_name }}</p>
+              </div>
+            </div>
+            <div class="book-right">
+              <div class="task-content">
+                <h4>任务内容</h4>
+                <p>{{ selectedTask.content }}</p>
+              </div>
+              <div class="task-actions" v-if="selectedTask.status !== '已完成'">
+                <el-button type="success" @click="completeTask(selectedTask)">完成任务</el-button>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div v-if="tasks.length === 0" class="no-tasks">
-          <el-empty description="暂无任务" />
         </div>
       </div>
+    </el-dialog>
 
-      <el-dialog
-        v-model="activeTaskId"
-        title="任务详情"
-        width="70%"
-        center
-        class="book-dialog"
-      >
-        <div v-if="activeTaskId" class="task-details">
-          <div class="book-cover">
-            <div class="book-spine"></div>
-            <div class="book-pages">
-              <div class="book-left">
-                <h3>{{ tasks.find(t => t.id === activeTaskId)?.title }}</h3>
-                <div class="task-meta">
-                  <p><strong>任务ID:</strong> {{ tasks.find(t => t.id === activeTaskId)?.id }}</p>
-                  <p><strong>创建时间:</strong> {{ tasks.find(t => t.id === activeTaskId)?.create_time }}</p>
-                  <p v-if="tasks.find(t => t.id === activeTaskId)?.status === '已完成'">
-                    <strong>完成时间:</strong> {{ tasks.find(t => t.id === activeTaskId)?.complete_time }}
-                  </p>
-                  <p><strong>负责人:</strong> {{ tasks.find(t => t.id === activeTaskId)?.designee_name }}</p>
-                  <p><strong>创建人:</strong> {{ tasks.find(t => t.id === activeTaskId)?.creator_name }}</p>
-                </div>
-              </div>
-              <div class="book-right">
-                <div class="task-content">
-                  <h4>任务内容</h4>
-                  <p>{{ tasks.find(t => t.id === activeTaskId)?.content }}</p>
-                </div>
-                <div class="task-actions">
-                  <el-button
-                    v-if="tasks.find(t => t.id === activeTaskId)?.status !== '已完成'"
-                    type="success"
-                    @click="markTaskComplete(tasks.find(t => t.id === activeTaskId))"
-                  >
-                    标记完成
-                  </el-button>
-                  <el-button
-                    type="primary"
-                    @click="openEditDialog(tasks.find(t => t.id === activeTaskId))"
-                  >
-                    编辑任务
-                  </el-button>
-                  <el-button
-                    type="danger"
-                    :loading="deleting"
-                    @click="deleteTaskHandler(tasks.find(t => t.id === activeTaskId))"
-                  >
-                    删除任务
-                  </el-button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </el-dialog>
-    </div>
+    <!-- 创建任务对话框 -->
+    <el-dialog
+      v-model="createDialogVisible"
+      title="新建任务"
+      width="50%"
+      center
+    >
+      <el-form :model="newTask" label-width="80px">
+        <el-form-item label="标题">
+          <el-input v-model="newTask.title" placeholder="请输入任务标题"></el-input>
+        </el-form-item>
+        <el-form-item label="内容">
+          <el-input
+            v-model="newTask.content"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入任务内容"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="负责人">
+          <el-input v-model="newTask.designee_name" placeholder="请输入负责人姓名"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="createDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="createTask">创建</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
+
+<style src="./MyTask.css"></style>

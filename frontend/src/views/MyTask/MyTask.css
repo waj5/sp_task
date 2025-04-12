@@ -1,58 +1,54 @@
-.my-tasks-container {
-  display: flex;
+.my-task {
+  text-align: center;
+  margin-top: 0;
+  perspective: 1000px;
   min-height: 100vh;
-  background-image: var(--mytask-bg-image);
+  background-image: var(--home-bg-image);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
-}
-
-.side-menu {
-  width: 200px;
-  height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.00);
-  background-color: rgba(255, 255, 255, 0.0);
-  backdrop-filter: blur(0px);
-}
-
-.my-tasks {
-  flex: 1;
-  margin-left: 200px;
-  padding: 20px;
-  perspective: 1000px;
-  background-color: rgba(255, 255, 255, 0.0);
-  backdrop-filter: blur(0px);
-}
-
-.header {
+  padding: 0;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 0 20px;
-  margin-bottom: 40px;
-  position: relative;
 }
 
-.header h1 {
+.page-layout {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.header-cell {
+  padding: 20px 0 10px;
+  vertical-align: top;
+}
+
+.header-cell h1 {
   margin: 0;
   font-size: 2em;
   color: #2c3e50;
   text-align: center;
-  margin-bottom: 20px;
+}
+
+.nav-cell {
+  padding: 10px 0;
+  vertical-align: top;
+  position: relative;
 }
 
 .nav-buttons {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
   width: 100%;
   max-width: 1200px;
   padding: 0 20px;
   box-sizing: border-box;
+  justify-content: flex-start;
+  margin: 0 auto;
 }
 
 .header-actions {
@@ -61,27 +57,60 @@
   top: 0;
 }
 
+.content-cell {
+  padding: 0;
+  vertical-align: top;
+}
+
 .task-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
+  gap: 40px;
   max-width: 1200px;
-  margin: 40px auto;
+  margin: 20px auto;
   padding: 20px;
+  perspective: 1000px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .task-card {
   padding: 20px;
-  border-radius: 4px;
+  border-radius: 2px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transition: all 0.5s ease;
+  transition: all 0.3s ease;
   cursor: pointer;
-  min-height: 200px;
+  min-height: 180px;
   display: flex;
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
-  background: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(to right, 
+    rgba(255,255,255,0.95) 0%,
+    rgba(255,255,255,1) 100%
+  );
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 
+    2px 2px 5px rgba(0,0,0,0.1),
+    -1px -1px 3px rgba(255,255,255,0.8);
+  transform-origin: left center;
+  perspective: 1000px;
+  transform: rotateY(0deg);
+  aspect-ratio: 3/4;
+}
+
+.task-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to bottom,
+    rgba(0,0,0,0.05),
+    rgba(0,0,0,0) 100%
+  );
+  z-index: 1;
 }
 
 .book-spine {
@@ -89,72 +118,184 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 8px;
-  background: linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0.05));
+  width: 12px;
+  background: linear-gradient(to right, 
+    rgba(0,0,0,0.25),
+    rgba(0,0,0,0.15) 20%,
+    rgba(0,0,0,0.1) 40%,
+    rgba(0,0,0,0.05) 60%,
+    rgba(0,0,0,0) 80%
+  );
   transform: translateZ(-1px);
+  box-shadow: inset -1px 0 2px rgba(0,0,0,0.2);
+  border-right: 1px solid rgba(0,0,0,0.1);
+}
+
+.book-spine::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0,0,0,0.2);
+  transform: translateY(-50%);
 }
 
 .book-content {
-  padding-left: 15px;
+  padding-left: 25px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  position: relative;
+  background: linear-gradient(to right, 
+    rgba(255,255,255,0.95) 0%,
+    rgba(255,255,255,1) 100%
+  );
+  padding-top: 15px;
+}
+
+.book-content::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom,
+    rgba(0,0,0,0.1),
+    rgba(0,0,0,0.05) 50%,
+    rgba(0,0,0,0.1)
+  );
 }
 
 .task-card:hover {
-  transform: translateY(-5px) rotateY(5deg) scale(1.02);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  transform: translateY(-5px) rotateY(15deg);
+  box-shadow: 
+    5px 5px 20px rgba(0,0,0,0.2),
+    -1px -1px 5px rgba(255,255,255,0.8);
 }
 
-.task-card h3 {
-  margin: 0 0 12px;
+.task-card:hover .book-spine {
+  background: linear-gradient(to right, 
+    rgba(0,0,0,0.4),
+    rgba(0,0,0,0.3) 20%,
+    rgba(0,0,0,0.2) 40%,
+    rgba(0,0,0,0.1) 60%,
+    rgba(0,0,0,0) 80%
+  );
+}
+
+.book-title {
+  margin-bottom: 15px;
+  position: relative;
+  border-bottom: 1px dashed rgba(0,0,0,0.1);
+  padding-bottom: 8px;
+}
+
+.book-title h3 {
+  margin: 0 0 8px;
   color: #2c3e50;
-  font-size: 1.2em;
+  font-size: 1.1em;
   text-align: left;
+  font-family: "Times New Roman", serif;
+  letter-spacing: 0.5px;
+  font-weight: bold;
+  line-height: 1.4;
 }
 
-.task-preview {
-  font-size: 0.9em;
+.book-author {
   color: #666;
+  font-size: 0.9em;
+  font-style: italic;
   text-align: left;
+  margin-bottom: 5px;
+  position: relative;
+  padding-left: 15px;
+}
+
+.book-author::before {
+  content: '作者:';
+  position: absolute;
+  left: 0;
+  color: #999;
+  font-size: 0.85em;
+}
+
+.book-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  position: relative;
+  padding-left: 15px;
+}
+
+.status-label {
+  color: #999;
+  font-size: 0.85em;
+}
+
+.status-value {
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+.book-pages-indicator {
+  display: flex;
+  gap: 3px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(0,0,0,0.1);
+  justify-content: flex-end;
+}
+
+.pages-dots {
+  width: 3px;
+  height: 3px;
+  background-color: rgba(0,0,0,0.15);
+  border-radius: 50%;
 }
 
 .task-details {
   padding: 20px;
   animation: bookOpen 0.5s ease-out;
+  height: 100%;
 }
 
 .book-cover {
   display: flex;
   min-height: 400px;
-  background: rgba(255, 255, 255, 0.2);
+  background: #fff;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(0px);
+  max-height: calc(90vh - 160px);
 }
 
 .book-pages {
   display: flex;
   flex: 1;
+  overflow-y: auto;
 }
 
 .book-left, .book-right {
   flex: 1;
   padding: 30px;
-  background: rgba(255, 255, 255, 0.2);
+  background: #fff;
   position: relative;
-  backdrop-filter: blur(0px);
+  overflow-y: auto;
 }
 
 .book-left {
-  border-right: 1px solid rgba(255, 255, 255, 0.0);
-  background: linear-gradient(to right, rgba(249, 249, 249, 0.2), rgba(255, 255, 255, 0.2));
+  border-right: 1px solid #eee;
+  background: linear-gradient(to right, #f9f9f9, #fff);
 }
 
 .book-right {
-  background: linear-gradient(to left, rgba(249, 249, 249, 0.2), rgba(255, 255, 255, 0.2));
+  background: linear-gradient(to left, #f9f9f9, #fff);
 }
 
 .task-meta, .task-content {
@@ -169,7 +310,7 @@
   font-size: 1.2em;
   text-align: center;
   padding-bottom: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid #eee;
 }
 
 .task-meta p {
@@ -179,30 +320,36 @@
   text-align: left;
 }
 
-.task-content {
-  position: relative;
-}
-
 .task-content p {
   color: #444;
   line-height: 1.6;
   font-size: 1em;
   text-align: left;
   flex: 1;
-  margin-bottom: 60px; /* 为按钮留出空间 */
 }
 
 .task-actions {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px dashed #eee;
+  text-align: right;
+}
+
+.book-dialog {
+  animation: dialogOpen 0.5s ease-out;
+}
+
+.book-dialog :deep(.el-dialog) {
+  margin-top: 5vh !important;
+  max-height: 90vh;
   display: flex;
-  gap: 10px;
-  justify-content: center;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.2);
-  border-top: 1px solid rgba(255, 255, 255, 0.0);
+  flex-direction: column;
+}
+
+.book-dialog :deep(.el-dialog__body) {
+  padding: 0;
+  overflow-y: auto;
+  max-height: calc(90vh - 120px);
 }
 
 @keyframes bookOpen {
@@ -216,32 +363,6 @@
   }
 }
 
-.book-dialog {
-  animation: dialogOpen 0.5s ease-out;
-}
-
-.book-dialog :deep(.el-dialog__body) {
-  padding: 0;
-}
-
-@keyframes dialogOpen {
-  0% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.no-tasks {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 40px;
-}
-
-/* 响应式布局 */
 @media (max-width: 768px) {
   .task-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -254,10 +375,6 @@
   .book-left {
     border-right: none;
     border-bottom: 1px solid #eee;
-  }
-
-  .header {
-    padding-top: 60px;
   }
 
   .nav-buttons {

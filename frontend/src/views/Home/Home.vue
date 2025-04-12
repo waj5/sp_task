@@ -40,37 +40,59 @@ onMounted(async () => {
 
 <template>
   <div class="home" :style="homeStyle">
-    <div class="header">
-      <h1>欢迎来到首页</h1>
-      <div class="nav-buttons">
-        <el-button type="primary" :plain="false">首页</el-button>
-        <el-button type="primary" :plain="true" @click="goToTasks">我的任务</el-button>
-      </div>
-      <div class="header-actions">
-        <el-button type="danger" @click="logout">退出登录</el-button>
-      </div>
-    </div>
-    <div class="task-grid">
-      <div
-        v-for="(task,index) in randomTasks"
-        :key="index"
-        class="task-card"
-        :style="{
-          backgroundColor: `hsl(${Math.random()*360},70%,85%)`,
-          transform: `rotateY(${Math.random()*10-5}deg)`
-        }"
-        @click="showTaskDetails(task)"
-      >
-        <div class="book-spine"></div>
-        <div class="book-content">
-          <h3>{{task.title}}</h3>
-          <div class="task-preview">
-            <p><strong>负责人:</strong> {{ task.designee_name }}</p>
-            <p><strong>状态:</strong> {{ task.status }}</p>
+    <table class="page-layout">
+      <tr>
+        <td class="header-cell">
+          <h1>欢迎来到首页</h1>
+        </td>
+      </tr>
+      <tr>
+        <td class="nav-cell">
+          <div class="nav-buttons">
+            <el-button type="primary" :plain="false">首页</el-button>
+            <el-button type="primary" :plain="true" @click="goToTasks">我的任务</el-button>
           </div>
-        </div>
-      </div>
-    </div>
+          <div class="header-actions">
+            <el-button type="danger" @click="logout">退出登录</el-button>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="content-cell">
+          <div class="task-grid">
+            <div
+              v-for="(task,index) in randomTasks"
+              :key="index"
+              class="task-card"
+              :style="{
+                backgroundColor: `hsl(${Math.random()*360},70%,85%)`,
+                transform: `rotateY(${Math.random()*10-5}deg)`
+              }"
+              @click="showTaskDetails(task)"
+            >
+              <div class="book-spine"></div>
+              <div class="book-content">
+                <div class="book-title">
+                  <h3>{{task.title}}</h3>
+                  <div class="book-author">{{ task.designee_name }}</div>
+                </div>
+                <div class="task-preview">
+                  <div class="book-status">
+                    <span class="status-label">状态:</span>
+                    <span class="status-value">{{ task.status }}</span>
+                  </div>
+                  <div class="book-pages-indicator">
+                    <span class="pages-dots"></span>
+                    <span class="pages-dots"></span>
+                    <span class="pages-dots"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
 
     <el-dialog
       v-model="dialogVisible"
@@ -78,6 +100,12 @@ onMounted(async () => {
       width="70%"
       center
       class="book-dialog"
+      :modal-append-to-body="false"
+      :append-to-body="true"
+      :close-on-click-modal="false"
+      :close-on-press-escape="true"
+      :show-close="true"
+      :destroy-on-close="true"
     >
       <div v-if="selectedTask" class="task-details">
         <div class="book-cover">
