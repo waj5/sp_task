@@ -67,7 +67,7 @@ export function useMyTask() {
     deleting,
     loadTasks,
     markTaskComplete,
-    deleteTaskHandler ,
+    deleteTaskHandler,
     goBack
   }
 }

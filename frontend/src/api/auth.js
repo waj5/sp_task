@@ -114,3 +114,12 @@ export const register = async (userData) => {
     throw new Error(error.response?.data?.detail || '注册失败')
   }
 }
+
+export const fetchAllTasks = async()=>{
+  try {
+    const response = await apiClient.get('/auth/tasks/rand_task')
+    return response.data
+  }catch (error) {
+    throw new Error(error.response?.data?.detail || '获取任务失败')
+  }
+}

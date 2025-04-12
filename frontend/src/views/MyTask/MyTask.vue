@@ -1,10 +1,14 @@
 <!-- views/MyTask/MyTask.vue -->
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useMyTask } from './useMyTask'
 import EditTask from '@/views/EditTask/EditTask.vue'
 import AddTask from '@/views/AddTask/AddTask.vue'
+import { useRouter, useRoute } from 'vue-router'
 import './MyTask.css';
+
+const router = useRouter()
+const route = useRoute()
 
 // 组合式API
 const {
@@ -13,13 +17,16 @@ const {
   deleting,
   loadTasks,
   markTaskComplete,
-  deleteTaskHandler ,
+  deleteTaskHandler,
   goBack
 } = useMyTask()
 
 // 子组件引用
 const editTaskRef = ref(null)
 const addTaskRef = ref(null)
+
+// 判断当前是否在首页
+const isHome = computed(() => route.path === '/')
 
 // 菜单选择处理
 const handleMenuSelect = (index) => {
@@ -31,6 +38,15 @@ const handleMenuSelect = (index) => {
 // 打开编辑对话框
 const openEditDialog = (task) => {
   editTaskRef.value.openDialog(task)
+}
+
+// 退出登录
+const logout = () => {
+  // 清除用户信息
+  localStorage.removeItem('token')
+  localStorage.removeItem('userInfo')
+  // 跳转到登录页
+  router.push('/login')
 }
 
 // 初始化加载
@@ -66,75 +82,110 @@ onMounted(() => {
 
     <!-- 主内容区 -->
     <div class="my-tasks">
-      <h1>我的任务</h1>
+      <div class="header">
+        <h1>我的任务</h1>
+        <div class="nav-buttons">
+          <el-button 
+            type="primary" 
+            :plain="true"
+            @click="goBack"
+          >
+            首页
+          </el-button>
+          <el-button 
+            type="primary" 
+            :plain="false"
+            @click="() => {}"
+          >
+            我的任务
+          </el-button>
+        </div>
+        <div class="header-actions">
+          <el-button type="danger" @click="logout">退出登录</el-button>
+        </div>
+      </div>
 
-      <el-collapse v-model="activeTaskId" accordion>
-        <el-collapse-item
+      <div class="task-grid">
+        <div
           v-for="task in tasks"
           :key="task.id"
-          :name="task.id"
+          class="task-card"
+          :style="{
+            backgroundColor:`hsl(${Math.random()*360},70%,85%)`,
+            transform: `rotateY(${Math.random()*10-5}deg)`
+          }"
+          @click="() => activeTaskId = task.id"
         >
-          <template #title>
-            <div class="task-title">
-              <span>{{ task.title }}</span>
-              <el-tag
-                :type="task.status === '已完成' ? 'success' : 'warning'"
-                size="small"
-              >
-                {{ task.status }}
-              </el-tag>
-            </div>
-          </template>
-
-          <el-card class="task-detail-card">
-            <div class="task-info">
-              <p><strong>任务ID:</strong> {{ task.id }}</p>
-              <p><strong>内容:</strong> {{ task.content }}</p>
-              <p><strong>创建时间:</strong> {{ task.create_time }}</p>
-              <p v-if="task.status === '已完成'">
-                <strong>完成时间:</strong> {{ task.complete_time }}
-              </p>
+          <div class="book-spine"></div>
+          <div class="book-content">
+            <h3>{{ task.title }}</h3>
+            <div class="task-preview">
               <p><strong>负责人:</strong> {{ task.designee_name }}</p>
-              <p><strong>创建人:</strong> {{ task.creator_name }}</p>
+              <p><strong>状态:</strong> {{ task.status }}</p>
             </div>
-
-            <div class="task-actions">
-              <el-button
-                v-if="task.status !== '已完成'"
-                type="success"
-                @click="markTaskComplete(task)"
-              >
-                标记完成
-              </el-button>
-              <el-button
-                type="primary"
-                @click="openEditDialog(task)"
-              >
-                编辑任务
-              </el-button>
-              <el-button
-                type="danger"
-                :loading="deleting"
-                @click="deleteTaskHandler(task)"
-              >
-                删除任务
-              </el-button>
-            </div>
-          </el-card>
-        </el-collapse-item>
+          </div>
+        </div>
 
         <div v-if="tasks.length === 0" class="no-tasks">
           <el-empty description="暂无任务" />
         </div>
-      </el-collapse>
+      </div>
 
-      <el-button
-        type="primary"
-        @click="goBack"
-        class="back-button"
+      <el-dialog
+        v-model="activeTaskId"
+        title="任务详情"
+        width="70%"
+        center
+        class="book-dialog"
       >
-        返回首页
-      </el-button>
+        <div v-if="activeTaskId" class="task-details">
+          <div class="book-cover">
+            <div class="book-spine"></div>
+            <div class="book-pages">
+              <div class="book-left">
+                <h3>{{ tasks.find(t => t.id === activeTaskId)?.title }}</h3>
+                <div class="task-meta">
+                  <p><strong>任务ID:</strong> {{ tasks.find(t => t.id === activeTaskId)?.id }}</p>
+                  <p><strong>创建时间:</strong> {{ tasks.find(t => t.id === activeTaskId)?.create_time }}</p>
+                  <p v-if="tasks.find(t => t.id === activeTaskId)?.status === '已完成'">
+                    <strong>完成时间:</strong> {{ tasks.find(t => t.id === activeTaskId)?.complete_time }}
+                  </p>
+                  <p><strong>负责人:</strong> {{ tasks.find(t => t.id === activeTaskId)?.designee_name }}</p>
+                  <p><strong>创建人:</strong> {{ tasks.find(t => t.id === activeTaskId)?.creator_name }}</p>
+                </div>
+              </div>
+              <div class="book-right">
+                <div class="task-content">
+                  <h4>任务内容</h4>
+                  <p>{{ tasks.find(t => t.id === activeTaskId)?.content }}</p>
+                </div>
+                <div class="task-actions">
+                  <el-button
+                    v-if="tasks.find(t => t.id === activeTaskId)?.status !== '已完成'"
+                    type="success"
+                    @click="markTaskComplete(tasks.find(t => t.id === activeTaskId))"
+                  >
+                    标记完成
+                  </el-button>
+                  <el-button
+                    type="primary"
+                    @click="openEditDialog(tasks.find(t => t.id === activeTaskId))"
+                  >
+                    编辑任务
+                  </el-button>
+                  <el-button
+                    type="danger"
+                    :loading="deleting"
+                    @click="deleteTaskHandler(tasks.find(t => t.id === activeTaskId))"
+                  >
+                    删除任务
+                  </el-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </el-dialog>
     </div>
   </div>
 </template>

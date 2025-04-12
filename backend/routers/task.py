@@ -3,7 +3,8 @@ from backend.utils.utils import get_current_user
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
-from backend.database.database import query_tasks_by_user_or_designee, get_designees_by_task, update_task, delete_task, query_tasks_fuzzy,get_user_id_by_name
+from backend.database.database import query_tasks_by_user_or_designee, get_designees_by_task, update_task, delete_task, \
+    query_tasks_fuzzy, get_user_id_by_name, get_all_tasks
 
 router = APIRouter(prefix="/auth", tags=["tasks"])
 
@@ -109,7 +110,6 @@ async def delete_task_by_id(
 @router.get("/tasks/fuzzy")
 async def fuzzy_search_tasks(
     query_str: str,
-    current_user_id: str = Depends(get_current_user)
 ):
     try:
         tasks = await query_tasks_fuzzy(query_str)
@@ -123,3 +123,33 @@ async def fuzzy_search_tasks(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"模糊查询任务时发生错误：{str(e)}"
         )
+
+@router.get("/tasks/rand_task")
+async def rand_task():
+    try:
+        tasks = await get_all_tasks()
+        return {
+            "tasks": [
+                {
+                    "id": task.id,
+                    "title": task.title,
+                    "content": task.content,
+                    "status": task.status,
+                    "create_time": task.create_time.isoformat(),
+                    "complete_time": task.update_time.isoformat() if task.update_time else None,
+                    "creator_name": (await task.creator).name,  # 获取创建人姓名
+                    "designee_name": (await task.designee).name  # 获取负责人姓名
+                }
+                for task in tasks
+            ]
+        }
+    except HTTPException as e:
+        # 捕获并重新抛出已知的HTTP异常
+        raise e
+    except Exception as e:
+        # 处理其他意外错误
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"模糊查询任务时发生错误：{str(e)}"
+        )
+
