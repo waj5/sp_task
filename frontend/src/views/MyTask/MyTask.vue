@@ -1,53 +1,28 @@
 <!-- views/MyTask/MyTask.vue -->
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { onMounted } from 'vue'
 import { useMyTask } from './useMyTask'
 import EditTask from '@/views/EditTask/EditTask.vue'
 import AddTask from '@/views/AddTask/AddTask.vue'
-import { useRouter, useRoute } from 'vue-router'
 import './MyTask.css';
-
-const router = useRouter()
-const route = useRoute()
 
 // 组合式API
 const {
   tasks,
   activeTaskId,
   deleting,
+  editTaskRef,
+  addTaskRef,
+  myTaskStyle,
   loadTasks,
   markTaskComplete,
   deleteTaskHandler,
-  goBack
+  goBack,
+  handleMenuSelect,
+  openEditDialog,
+  goToHome,
+  logout
 } = useMyTask()
-
-// 子组件引用
-const editTaskRef = ref(null)
-const addTaskRef = ref(null)
-
-// 判断当前是否在首页
-const isHome = computed(() => route.path === '/')
-
-// 菜单选择处理
-const handleMenuSelect = (index) => {
-  if (index === '1') {
-    addTaskRef.value.showDialog()
-  }
-}
-
-// 打开编辑对话框
-const openEditDialog = (task) => {
-  editTaskRef.value.openDialog(task)
-}
-
-// 退出登录
-const logout = () => {
-  // 清除用户信息
-  localStorage.removeItem('token')
-  localStorage.removeItem('userInfo')
-  // 跳转到登录页
-  router.push('/login')
-}
 
 // 初始化加载
 onMounted(() => {
@@ -56,7 +31,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="my-tasks-container">
+  <div class="my-tasks-container" :style="myTaskStyle">
     <!-- 左侧菜单 -->
     <el-menu
       class="side-menu"
@@ -85,20 +60,8 @@ onMounted(() => {
       <div class="header">
         <h1>我的任务</h1>
         <div class="nav-buttons">
-          <el-button 
-            type="primary" 
-            :plain="true"
-            @click="goBack"
-          >
-            首页
-          </el-button>
-          <el-button 
-            type="primary" 
-            :plain="false"
-            @click="() => {}"
-          >
-            我的任务
-          </el-button>
+          <el-button type="primary" plain @click="goToHome">首页</el-button>
+          <el-button type="primary">我的任务</el-button>
         </div>
         <div class="header-actions">
           <el-button type="danger" @click="logout">退出登录</el-button>

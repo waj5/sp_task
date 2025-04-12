@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { fetchTasks, updateTaskStatus, deleteTask } from '@/api/auth'
@@ -8,6 +8,17 @@ export function useMyTask() {
   const tasks = ref([])
   const activeTaskId = ref(null)
   const deleting = ref(false)
+  const editTaskRef = ref(null)
+  const addTaskRef = ref(null)
+
+  // 背景图片样式
+  const myTaskStyle = computed(() => {
+    const bgImage = `url('${import.meta.env.VITE_MYTASK_BG_IMAGE}')`
+    console.log('Background image URL:', bgImage)
+    return {
+      '--mytask-bg-image': bgImage
+    }
+  })
 
   const loadTasks = async () => {
     try {
@@ -61,13 +72,42 @@ export function useMyTask() {
     router.push({ name: "Home" })
   }
 
+  const handleMenuSelect = (index) => {
+    if (index === '1') {
+      addTaskRef.value.showDialog()
+    }
+  }
+
+  const openEditDialog = (task) => {
+    editTaskRef.value.openDialog(task)
+  }
+
+  const goToHome = () => {
+    router.push('/')
+  }
+
+  const logout = () => {
+    // 清除用户信息
+    localStorage.removeItem('token')
+    localStorage.removeItem('userInfo')
+    // 跳转到登录页
+    router.push('/login')
+  }
+
   return {
     tasks,
     activeTaskId,
     deleting,
+    editTaskRef,
+    addTaskRef,
+    myTaskStyle,
     loadTasks,
     markTaskComplete,
     deleteTaskHandler,
-    goBack
+    goBack,
+    handleMenuSelect,
+    openEditDialog,
+    goToHome,
+    logout
   }
 }

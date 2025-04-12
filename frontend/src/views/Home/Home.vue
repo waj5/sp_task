@@ -1,31 +1,45 @@
 <script setup>
+import { onMounted } from 'vue';
+import { ElMessage } from 'element-plus';
 import { useHome } from './Home.js';
-import {onMounted, ref, computed} from "vue";
-import { ElDialog } from 'element-plus';
-import { useRoute } from 'vue-router';
 
-const { goToTasks, logout, getAllTasks, shuffleArray } = useHome();
-const route = useRoute();
-const randomTasks = ref([]);
-const selectedTask = ref(null);
-const dialogVisible = ref(false);
+const {
+  randomTasks,
+  selectedTask,
+  dialogVisible,
+  loading,
+  homeStyle,
+  getAllTasks,
+  shuffleArray,
+  goToTasks,
+  logout,
+  showTaskDetails
+} = useHome();
 
-// 判断当前是否在首页
-const isHome = computed(() => route.path === '/')
-
-onMounted(async ()=>{
-  const allTasks = await getAllTasks();
-  randomTasks.value = shuffleArray([...allTasks]).slice(0,9);
+onMounted(async () => {
+  try {
+    const tasks = await getAllTasks();
+    console.log('获取到的原始任务:', tasks);
+    
+    // 确保 tasks 是数组且不为空
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      randomTasks.value = shuffleArray([...tasks]).slice(0, 9);
+      console.log('处理后的任务:', randomTasks.value);
+    } else {
+      console.log('没有获取到任务数据或数据为空');
+      randomTasks.value = []; // 确保设置为空数组
+      ElMessage.info('暂无任务数据');
+    }
+  } catch (error) {
+    console.error('初始化任务失败:', error);
+    randomTasks.value = []; // 确保设置为空数组
+    ElMessage.error('加载任务失败，请刷新页面重试');
+  }
 });
-
-const showTaskDetails = (task) => {
-  selectedTask.value = task;
-  dialogVisible.value = true;
-};
 </script>
 
 <template>
-  <div class="home">
+  <div class="home" :style="homeStyle">
     <div class="header">
       <h1>欢迎来到首页</h1>
       <div class="nav-buttons">
@@ -42,7 +56,7 @@ const showTaskDetails = (task) => {
         :key="index"
         class="task-card"
         :style="{
-          backgroundColor:`hsl(${Math.random()*360},70%,85%)`,
+          backgroundColor: `hsl(${Math.random()*360},70%,85%)`,
           transform: `rotateY(${Math.random()*10-5}deg)`
         }"
         @click="showTaskDetails(task)"

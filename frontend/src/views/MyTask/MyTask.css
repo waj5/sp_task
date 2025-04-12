@@ -1,6 +1,11 @@
 .my-tasks-container {
   display: flex;
   min-height: 100vh;
+  background-image: var(--mytask-bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .side-menu {
@@ -9,7 +14,9 @@
   position: fixed;
   left: 0;
   top: 0;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid rgba(255, 255, 255, 0.00);
+  background-color: rgba(255, 255, 255, 0.0);
+  backdrop-filter: blur(0px);
 }
 
 .my-tasks {
@@ -17,6 +24,8 @@
   margin-left: 200px;
   padding: 20px;
   perspective: 1000px;
+  background-color: rgba(255, 255, 255, 0.0);
+  backdrop-filter: blur(0px);
 }
 
 .header {
@@ -72,7 +81,7 @@
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
-  background: linear-gradient(to right, #f5f5f5 0%, #fff 100%);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .book-spine {
@@ -119,10 +128,11 @@
 .book-cover {
   display: flex;
   min-height: 400px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(0px);
 }
 
 .book-pages {
@@ -133,17 +143,18 @@
 .book-left, .book-right {
   flex: 1;
   padding: 30px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.2);
   position: relative;
+  backdrop-filter: blur(0px);
 }
 
 .book-left {
-  border-right: 1px solid #eee;
-  background: linear-gradient(to right, #f9f9f9, #fff);
+  border-right: 1px solid rgba(255, 255, 255, 0.0);
+  background: linear-gradient(to right, rgba(249, 249, 249, 0.2), rgba(255, 255, 255, 0.2));
 }
 
 .book-right {
-  background: linear-gradient(to left, #f9f9f9, #fff);
+  background: linear-gradient(to left, rgba(249, 249, 249, 0.2), rgba(255, 255, 255, 0.2));
 }
 
 .task-meta, .task-content {
@@ -158,7 +169,7 @@
   font-size: 1.2em;
   text-align: center;
   padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .task-meta p {
@@ -190,8 +201,8 @@
   gap: 10px;
   justify-content: center;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.9);
-  border-top: 1px solid #eee;
+  background: rgba(255, 255, 255, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.0);
 }
 
 @keyframes bookOpen {
