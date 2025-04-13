@@ -1,5 +1,5 @@
 import os,sys
-current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, current_dir)
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
