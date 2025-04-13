@@ -1,10 +1,3 @@
-import os,sys
-
-from backend.routers.auth import project_dir
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_dir = os.path.dirname(os.path.abspath(current_dir))
-sys.path.append(project_dir)
 from fastapi import APIRouter, Depends, HTTPException, status
 from backend.utils.utils import get_current_user
 from pydantic import BaseModel

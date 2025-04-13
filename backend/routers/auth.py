@@ -1,13 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, field_validator
 from typing import Optional
-import os,sys
-
-from backend.app.main import project_dir
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_dir = os.path.dirname(os.path.abspath(current_dir))
-sys.path.append(project_dir)
 from backend.database.database import login_user, init, create_user
 import jwt
 from datetime import datetime, timedelta
