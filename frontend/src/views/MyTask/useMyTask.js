@@ -1,13 +1,32 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { fetchTasks, updateTaskStatus, deleteTask } from '@/api/auth'
+import { fetchTasks, updateTaskStatus, deleteTask, addTask } from '@/api/auth'
 
 export function useMyTask() {
   const router = useRouter()
   const tasks = ref([])
   const activeTaskId = ref(null)
   const deleting = ref(false)
+  const editTaskRef = ref(null)
+  const addTaskRef = ref(null)
+  const dialogVisible = ref(false)
+  const selectedTask = ref(null)
+  const createDialogVisible = ref(false)
+  const newTask = ref({
+    title: '',
+    content: '',
+    designee_name: ''
+  })
+
+  // 背景图片样式
+  const myTaskStyle = computed(() => {
+    const bgImage = `url('${import.meta.env.VITE_HOME_BG_IMAGE}')`
+    console.log('Background image URL:', bgImage)
+    return {
+      '--home-bg-image': bgImage
+    }
+  })
 
   const loadTasks = async () => {
     try {
@@ -16,6 +35,57 @@ export function useMyTask() {
     } catch (error) {
       ElMessage.error("加载任务失败")
     }
+  }
+
+  const showTaskDetails = (task) => {
+    selectedTask.value = task
+    dialogVisible.value = true
+  }
+
+  const completeTask = async (task) => {
+    try {
+      await updateTaskStatus(task.id)
+      ElMessage.success("任务已完成")
+      dialogVisible.value = false
+      await loadTasks()
+    } catch (error) {
+      ElMessage.error("操作失败")
+    }
+  }
+
+  const createTask = async () => {
+    if (!newTask.value.title || !newTask.value.content || !newTask.value.designee_name) {
+      ElMessage.warning("请填写完整信息")
+      return
+    }
+    try {
+      const taskData = {
+        title: newTask.value.title,
+        content: newTask.value.content,
+        designee_name: newTask.value.designee_name
+      }
+      await addTask(taskData)
+      ElMessage.success('任务创建成功')
+      createDialogVisible.value = false
+      await loadTasks()
+      // 重置表单
+      newTask.value = {
+        title: '',
+        content: '',
+        designee_name: ''
+      }
+    } catch (error) {
+      console.error('创建任务失败:', error)
+      if (error.response) {
+        ElMessage.error(`创建失败: ${error.response.data.detail || '未知错误'}`)
+      } else {
+        ElMessage.error("创建失败，请重试")
+      }
+    }
+  }
+
+  const showCreateTaskDialog = () => {
+    createDialogVisible.value = true
   }
 
   const markTaskComplete = async (task) => {
@@ -61,13 +131,50 @@ export function useMyTask() {
     router.push({ name: "Home" })
   }
 
+  const handleMenuSelect = (index) => {
+    if (index === '1') {
+      addTaskRef.value.showDialog()
+    }
+  }
+
+  const openEditDialog = (task) => {
+    editTaskRef.value.openDialog(task)
+  }
+
+  const goToHome = () => {
+    router.push('/')
+  }
+
+  const logout = () => {
+    // 清除用户信息
+    localStorage.removeItem('token')
+    localStorage.removeItem('userInfo')
+    // 跳转到登录页
+    router.push('/login')
+  }
+
   return {
     tasks,
     activeTaskId,
     deleting,
+    editTaskRef,
+    addTaskRef,
+    myTaskStyle,
     loadTasks,
     markTaskComplete,
-    deleteTaskHandler ,
-    goBack
+    deleteTaskHandler,
+    goBack,
+    handleMenuSelect,
+    openEditDialog,
+    goToHome,
+    logout,
+    dialogVisible,
+    selectedTask,
+    createDialogVisible,
+    newTask,
+    showTaskDetails,
+    createTask,
+    completeTask,
+    showCreateTaskDialog
   }
 }

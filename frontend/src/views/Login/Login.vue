@@ -1,6 +1,6 @@
 <!-- views/Login/Login.vue -->
 <template>
-  <div class="login-container">
+  <div class="login-container" :style="containerStyle">
     <el-card class="login-card">
       <h2>登录</h2>
       <el-form
@@ -37,10 +37,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useLogin } from './useLogin'
 import './Login.css'
 
 const loginForm = ref(null)
 const { form, rules, onSubmit, onReset } = useLogin(loginForm)
+
+const containerStyle = computed(() => ({
+  '--login-bg-image': `url('${import.meta.env.VITE_LOGIN_BG_IMAGE}')`
+}))
 </script>

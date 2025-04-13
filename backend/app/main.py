@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, task
+from backend.routers import auth, task
 from backend.config.tortoise_config import TORTOISE_ORM
 from tortoise import Tortoise
 import uvicorn
@@ -34,4 +34,4 @@ def read_root():
     return {"message": "Welcome to FastAPI backend!"}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0",port=8000, reload=True)
+    uvicorn.run("main:app",port=8000, reload=True)

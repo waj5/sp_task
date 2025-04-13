@@ -252,3 +252,8 @@ async def query_tasks_by_user_or_designee(user_id: str, designee_id: str):
         Q(creator_id=user_id) | Q(designee_id=designee_id)
     ).prefetch_related("creator", "designee")
     return tasks
+
+async def get_all_tasks():
+    """获取所有任务"""
+    tasks = await Task.all()
+    return tasks
