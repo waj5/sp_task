@@ -1,18 +1,19 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { fetchTasks, updateTaskStatus, deleteTask, addTask } from '@/api/auth'
+import { fetchTasks, updateTaskStatus, deleteTask, addTask, updateTaskDetail } from '@/api/auth'
 
 export function useMyTask() {
   const router = useRouter()
   const tasks = ref([])
   const activeTaskId = ref(null)
   const deleting = ref(false)
-  const editTaskRef = ref(null)
   const addTaskRef = ref(null)
   const dialogVisible = ref(false)
   const selectedTask = ref(null)
   const createDialogVisible = ref(false)
+  const isEditing = ref(false)
+  const editingTask = ref(null)
   const newTask = ref({
     title: '',
     content: '',
@@ -28,6 +29,14 @@ export function useMyTask() {
     }
   })
 
+  // 检查是否有删除权限
+  const canDeleteTask = (task) => {
+    // 获取当前用户信息
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+    // 只有任务创建者或管理员可以删除任务
+    return userInfo.role === 'admin' || task.creator_id === userInfo.id
+  }
+
   const loadTasks = async () => {
     try {
       const response = await fetchTasks()
@@ -40,6 +49,7 @@ export function useMyTask() {
   const showTaskDetails = (task) => {
     selectedTask.value = task
     dialogVisible.value = true
+    isEditing.value = false
   }
 
   const completeTask = async (task) => {
@@ -111,19 +121,14 @@ export function useMyTask() {
 
       await deleteTask(task.id)
       ElMessage.success("删除成功")
+      // 关闭对话框
+      dialogVisible.value = false
+      // 刷新任务列表
       await loadTasks()
     } catch (error) {
       console.error('完整错误对象:', error)
-      if (error.code === 'ECONNABORTED') {
-        ElMessage.error('请求超时，请检查网络')
-      } else if (error.response) {
-        ElMessage.error(`后端错误: ${error.response.data.detail}`)
-      } else if (error.request) {
-        console.log('请求已发出但无响应:', error.request)
-        ElMessage.error('服务器无响应')
-      } else {
-        ElMessage.error('请求配置错误')
-      }
+      // 直接显示错误消息
+      ElMessage.error(error.message || '删除失败')
     }
   }
 
@@ -138,7 +143,11 @@ export function useMyTask() {
   }
 
   const openEditDialog = (task) => {
-    editTaskRef.value.openDialog(task)
+    if (editTaskRef.value) {
+      editTaskRef.value.openDialog(task)
+    } else {
+      console.error('EditTask component reference is not available')
+    }
   }
 
   const goToHome = () => {
@@ -153,11 +162,60 @@ export function useMyTask() {
     router.push('/login')
   }
 
+  const startEdit = () => {
+    isEditing.value = true
+    editingTask.value = { ...selectedTask.value }
+  }
+
+  const cancelEdit = () => {
+    isEditing.value = false
+    editingTask.value = null
+  }
+
+  const saveTask = async () => {
+    try {
+      // 如果状态变为已完成，添加完成时间
+      if (editingTask.value.status === '已完成' && selectedTask.value.status !== '已完成') {
+        editingTask.value.complete_time = new Date().toISOString()
+      }
+      // 如果状态从已完成变为进行中，清除完成时间
+      if (editingTask.value.status === '进行中' && selectedTask.value.status === '已完成') {
+        editingTask.value.complete_time = null
+      }
+      
+      // 确保发送所有必要的字段
+      const taskData = {
+        title: editingTask.value.title,
+        content: editingTask.value.content,
+        designee_name: editingTask.value.designee_name,
+        status: editingTask.value.status,
+        complete_time: editingTask.value.complete_time
+      }
+      
+      console.log('更新任务数据:', taskData) // 添加日志
+      const response = await updateTaskDetail(editingTask.value.id, taskData)
+      console.log('更新响应:', response) // 添加日志
+      
+      // 确保使用后端返回的状态
+      if (response.status) {
+        editingTask.value.status = response.status
+      }
+      
+      ElMessage.success("任务更新成功")
+      isEditing.value = false
+      await loadTasks()
+      // 更新当前选中的任务
+      selectedTask.value = editingTask.value
+    } catch (error) {
+      console.error("更新任务错误:", error)
+      ElMessage.error(error.message || "更新失败")
+    }
+  }
+
   return {
     tasks,
     activeTaskId,
     deleting,
-    editTaskRef,
     addTaskRef,
     myTaskStyle,
     loadTasks,
@@ -175,6 +233,12 @@ export function useMyTask() {
     showTaskDetails,
     createTask,
     completeTask,
-    showCreateTaskDialog
+    showCreateTaskDialog,
+    isEditing,
+    editingTask,
+    startEdit,
+    cancelEdit,
+    saveTask,
+    canDeleteTask
   }
 }

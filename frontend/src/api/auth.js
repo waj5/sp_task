@@ -94,15 +94,30 @@ export const deleteTask = async (taskId) => {
   try {
     await apiClient.delete(`/auth/tasks/${taskId}`)
   } catch (error) {
+    if (error.response?.status === 403) {
+      throw new Error('无权限删除此任务')
+    }
     throw new Error(error.response?.data?.detail || '删除任务失败')
   }
 }
 
 export const updateTaskDetail = async (taskId, taskData) => {
   try {
-    const response = await apiClient.patch(`/auth/tasks/${taskId}`, taskData)
+    console.log('发送更新请求:', taskData) // 添加日志
+    // 确保状态字段被正确发送
+    const requestData = {
+      ...taskData,
+      status: taskData.status // 确保状态字段存在
+    }
+    console.log('实际发送的请求数据:', requestData)
+    const response = await apiClient.patch(`/auth/tasks/${taskId}`, requestData)
+    console.log('更新响应:', response.data) // 添加日志
     return response.data
   } catch (error) {
+    console.error('更新任务错误:', error.response?.data || error) // 添加日志
+    if (error.response?.status === 403) {
+      throw new Error('无权限修改此任务')
+    }
     throw new Error(error.response?.data?.detail || '更新任务失败')
   }
 }
