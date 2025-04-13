@@ -1,3 +1,7 @@
+import os,sys
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
+from config import DB_CONFIG
 TORTOISE_ORM={
     "connections": {
         "default": {
@@ -6,8 +10,8 @@ TORTOISE_ORM={
                 "host": "127.0.0.1",
                 "port": "3306",
                 "user": "root",
-                "password": "Wangai@163.com",
-                "database": "sp_task",
+                "password": DB_CONFIG["password"],
+                "database": DB_CONFIG["name"],
                 "minsize": 1,
                 "maxsize": 10,
                 "charset": "utf8mb4",
